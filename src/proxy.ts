@@ -8,10 +8,10 @@ import type { NextRequest } from "next/server";
  *
  * The check is presence-only: the backend sets the httpOnly `refreshToken`
  * cookie (7-day session anchor) which we can read here but not forge. A present
- * cookie lets the request through; the backend still re-validates the token on
- * every API call, so it - not this proxy - is the real authority. A stale or
- * tampered cookie passes the gate but fails at the data layer, where the reauth
- * flow then logs the user out.
+ * cookie lets the request through; the real session validation then happens
+ * client-side in `RequireAuth`, which calls `GET /auth/me` before the console
+ * renders. A stale or tampered cookie passes this cheap gate but fails that
+ * check (and every data call), where the reauth flow logs the user out.
  */
 const SESSION_COOKIE = "refreshToken";
 
