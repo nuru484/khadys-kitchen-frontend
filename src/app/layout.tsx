@@ -3,6 +3,7 @@ import { Marcellus, Karla } from "next/font/google";
 import "./globals.css";
 import { siteConfig, siteUrl } from "@/lib/site";
 import { CustomToaster } from "@/components/ui/CustomToaster";
+import { StoreProvider } from "@/redux/store-provider";
 
 const marcellus = Marcellus({
   weight: "400",
@@ -121,7 +122,7 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd.website) }}
         />
-        {children}
+        <StoreProvider>{children}</StoreProvider>
         <CustomToaster />
       </body>
     </html>
