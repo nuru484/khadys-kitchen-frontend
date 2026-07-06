@@ -71,3 +71,57 @@ export interface ITrainingListResponse {
   data: ITraining[];
   meta: IPaginationMeta;
 }
+
+export interface ITrainingResponse {
+  message: string;
+  data: ITraining;
+}
+
+export interface IFeeItemInput {
+  name: string;
+  amount: number;
+  kind: string;
+  required: boolean;
+  note?: string;
+  suffix?: string;
+  priceLabel?: string;
+  position?: number;
+}
+
+export interface IRequirementInput {
+  name: string;
+  note?: string;
+}
+
+/** Body for creating/updating a training (the admin form). */
+export interface ITrainingInput {
+  name: string;
+  numeral?: string;
+  description: string;
+  coverImage?: string;
+  status?: string;
+  applicationsOpen?: boolean;
+  isPublished?: boolean;
+  startDate?: string;
+  endDate?: string;
+  capacity?: number;
+  hostelCapacity?: number;
+  tagline?: string;
+  heroHeading?: string;
+  heroSubtext?: string;
+  costsIntro?: string;
+  costsNote?: string;
+  bringIntro?: string;
+  stats?: IStat[];
+  requirements?: IRequirementInput[];
+  highlights?: string[];
+  feeItems?: IFeeItemInput[];
+}
+
+export interface ITrainingListQuery {
+  page?: number;
+  limit?: number;
+  status?: string;
+  applicationsOpen?: boolean;
+  search?: string;
+}

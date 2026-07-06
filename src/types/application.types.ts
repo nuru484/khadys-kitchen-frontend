@@ -14,6 +14,13 @@ export interface IApplyInput {
   payNow?: boolean;
 }
 
+export interface IFeeLine {
+  id: string;
+  name: string;
+  amount: number;
+  kind: string;
+}
+
 export interface IApplication {
   id: string;
   code: string;
@@ -21,6 +28,7 @@ export interface IApplication {
   phone: string;
   email: string | null;
   location: string | null;
+  message?: string | null;
   needsHostel: boolean;
   amountDue: number;
   amountPaid: number;
@@ -28,7 +36,35 @@ export interface IApplication {
   currency: string;
   paymentStatus: "PAID" | "PARTIAL" | "UNPAID";
   status: string;
+  source?: string;
+  reviewedAt?: string | null;
   createdAt: string;
+  updatedAt?: string;
+  // Present on the admin detail view.
+  feeLines?: IFeeLine[];
+  payments?: IPayment[];
+  student?: { id: string; code: string; status: string } | null;
+  training?: { id: string; name: string; numeral: string | null; slug: string };
+}
+
+export interface IApplicationListResponse {
+  message: string;
+  data: IApplication[];
+  meta: import("./training.types").IPaginationMeta;
+}
+
+export interface IApplicationResponse {
+  message: string;
+  data: IApplication;
+}
+
+export interface IApplicationListQuery {
+  page?: number;
+  limit?: number;
+  trainingId?: string;
+  status?: string;
+  paymentStatus?: string;
+  search?: string;
 }
 
 /** `POST /applications` — application created; `authorizationUrl` present when paying now. */
@@ -55,4 +91,17 @@ export interface IPayment {
 export interface IVerifyResponse {
   message: string;
   data: IPayment;
+}
+
+/** `GET /admin/applications/:id/payments`. */
+export interface IPaymentsListResponse {
+  message: string;
+  data: IPayment[];
+}
+
+export interface IRecordPaymentInput {
+  amount: number;
+  method: "CASH" | "MOMO" | "BANK_TRANSFER" | "OTHER";
+  note?: string;
+  paidAt?: string;
 }

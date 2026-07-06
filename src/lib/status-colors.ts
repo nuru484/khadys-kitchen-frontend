@@ -22,12 +22,28 @@ const STATUS_COLORS: Record<string, StatusColor> = {
   COLLECTED: { bg: "rgba(36,26,18,0.08)", color: "rgba(36,26,18,0.55)" },
   // Payments
   PAID: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
-  UNPAID: { bg: "rgba(176,124,32,0.15)", color: "#8A5F14" },
+  PARTIAL: { bg: "rgba(176,124,32,0.15)", color: "#8A5F14" },
+  UNPAID: { bg: "rgba(163,32,54,0.1)", color: "#A32036" },
+  SUCCESS: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
+  FAILED: { bg: "rgba(163,32,54,0.1)", color: "#A32036" },
+  REVERSED: { bg: "rgba(36,26,18,0.08)", color: "rgba(36,26,18,0.55)" },
   // Certificates
   ISSUED: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
   "NOT ISSUED": { bg: "rgba(176,124,32,0.15)", color: "#8A5F14" },
-  // Items / generic
+  // Application (backend enum)
+  RECRUITED: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
+  WAITLISTED: { bg: "rgba(176,124,32,0.15)", color: "#8A5F14" },
+  WITHDRAWN: { bg: "rgba(36,26,18,0.08)", color: "rgba(36,26,18,0.55)" },
+  // Training lifecycle
+  DRAFT: { bg: "rgba(36,26,18,0.08)", color: "rgba(36,26,18,0.55)" },
+  UPCOMING: { bg: "rgba(194,24,91,0.12)", color: "#C2185B" },
+  ONGOING: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
+  COMPLETED: { bg: "rgba(36,26,18,0.08)", color: "rgba(36,26,18,0.55)" },
+  PUBLISHED: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
+  UNPUBLISHED: { bg: "rgba(36,26,18,0.08)", color: "rgba(36,26,18,0.55)" },
+  // Students / generic
   ACTIVE: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
+  SUSPENDED: { bg: "rgba(163,32,54,0.1)", color: "#A32036" },
   ADMITTED: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
   ENROLLING: { bg: "rgba(194,24,91,0.12)", color: "#C2185B" },
   GRADUATED: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
