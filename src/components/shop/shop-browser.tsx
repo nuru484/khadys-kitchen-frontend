@@ -67,6 +67,8 @@ export function ShopBrowser() {
   const [priceBand, setPriceBand] = useState<PriceBand>("any");
   const [byDate, setByDate] = useState("");
   const [page, setPage] = useState(1);
+  // On mobile/tablet the toolbar collapses behind a toggle; open state for it.
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   // Computed on the client only, so the date <input min> never mismatches on hydration.
   const [tomorrow, setTomorrow] = useState("");
@@ -123,12 +125,14 @@ export function ShopBrowser() {
     setPage(1);
   };
 
-  const hasActiveFilters =
-    cat !== "all" ||
-    priceBand !== "any" ||
-    byDate !== "" ||
-    sort !== "featured" ||
-    query.trim().length > 0;
+  const activeCount = [
+    cat !== "all",
+    priceBand !== "any",
+    byDate !== "",
+    sort !== "featured",
+    query.trim().length > 0,
+  ].filter(Boolean).length;
+  const hasActiveFilters = activeCount > 0;
 
   const clearFilters = () => {
     setQuery("");
@@ -154,11 +158,59 @@ export function ShopBrowser() {
   return (
     <>
       <div
-        className="mb-[clamp(22px,3vw,32px)] grid gap-3 border-y border-ink/15 py-[18px]"
+        className="mb-[clamp(22px,3vw,32px)] border-y border-ink/15 py-[18px]"
         style={{ animation: "kk-fadein .8s .6s both" }}
       >
-        <div className="flex flex-wrap items-end gap-2.5">
-          <div className="relative min-w-[180px] flex-[1_1_200px] sm:max-w-[340px]">
+        {/* Mobile / tablet: one toggle keeps the toolbar from crowding the page;
+            the search and filters collapse behind it. */}
+        <div className="flex items-center justify-between gap-3 lg:hidden">
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((open) => !open)}
+            aria-expanded={filtersOpen}
+            aria-controls="shop-filters"
+            className="inline-flex items-center gap-2 rounded-full border-[1.5px] border-ink/25 px-4 py-[10px] font-sans text-[13.5px] font-semibold text-ink transition-colors hover:border-accent"
+          >
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              className="h-4 w-4"
+            >
+              <path d="M4 6h16M7 12h10M10 18h4" />
+            </svg>
+            Search &amp; filters
+            {activeCount > 0 ? (
+              <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-accent px-1 text-[11px] font-bold text-[#FDFAF3]">
+                {activeCount}
+              </span>
+            ) : null}
+            <span
+              aria-hidden="true"
+              className={cn("text-[11px] transition-transform", filtersOpen && "rotate-180")}
+            >
+              ▾
+            </span>
+          </button>
+          <span className="whitespace-nowrap text-[13.5px] text-ink/55">
+            {resultCount}
+          </span>
+        </div>
+
+        {/* Controls: a stacked column on mobile (revealed by the toggle), an
+            inline toolbar from lg up. */}
+        <div
+          id="shop-filters"
+          className={cn(
+            "mt-3 gap-3 lg:mt-0",
+            filtersOpen ? "grid" : "hidden",
+            "lg:flex lg:flex-wrap lg:items-end lg:gap-2.5",
+          )}
+        >
+          <div className="relative w-full lg:w-auto lg:min-w-[180px] lg:max-w-[340px] lg:flex-[1_1_200px]">
             <span
               aria-hidden="true"
               className="pointer-events-none absolute left-[16px] top-1/2 -translate-y-1/2 text-[15px] text-ink/45"
@@ -208,7 +260,7 @@ export function ShopBrowser() {
               min={tomorrow}
               onChange={(e) => changeByDate(e.target.value)}
               className={cn(
-                "cursor-pointer rounded-[10px] border-[1.5px] bg-transparent px-3 py-[9px] font-sans text-[14px] font-medium normal-case tracking-normal text-ink outline-none transition-colors focus:border-accent",
+                "w-full cursor-pointer rounded-[10px] border-[1.5px] bg-transparent px-3 py-[9px] font-sans text-[14px] font-medium normal-case tracking-normal text-ink outline-none transition-colors focus:border-accent lg:w-auto",
                 byDate ? "border-accent text-accent" : "border-ink/20",
               )}
             />
@@ -219,7 +271,7 @@ export function ShopBrowser() {
             value={sort}
             active={sort !== "featured"}
             onChange={pickSort}
-            className="sm:ml-auto"
+            className="lg:ml-auto"
           >
             {sortOptions.map((o) => (
               <option key={o.id} value={o.id}>
@@ -227,9 +279,21 @@ export function ShopBrowser() {
               </option>
             ))}
           </LabeledSelect>
+
+          {/* Clear lives inside the panel on mobile; the desktop row below owns it on lg. */}
+          {hasActiveFilters ? (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="cursor-pointer justify-self-start border-none bg-transparent p-0 font-sans text-[13.5px] font-semibold text-accent underline lg:hidden"
+            >
+              Clear all ✕
+            </button>
+          ) : null}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        {/* Desktop: result count + clear. */}
+        <div className="mt-3 hidden flex-wrap items-center justify-between gap-x-4 gap-y-2 lg:flex">
           <span className="whitespace-nowrap text-[13.5px] text-ink/55">
             {resultCount}
           </span>
