@@ -6,10 +6,15 @@ export const routes = {
   home: "/",
   apply: "/apply",
   shop: "/shop",
+  shopCart: "/shop/cart",
+  shopCheckout: "/shop/checkout",
   contact: "/contact",
   privacy: "/privacy",
   terms: "/terms",
 } as const;
 
 /** Detail route for a single shop product. */
-export const shopProduct = (id: string) => `/shop/${id}`;
+export const shopProduct = (slug: string) => `/shop/${slug}`;
+
+/** Public tracking page for a placed order. */
+export const shopOrder = (code: string) => `/shop/orders/${code}`;

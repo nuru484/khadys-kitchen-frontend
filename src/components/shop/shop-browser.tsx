@@ -3,20 +3,22 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { ProductCard } from "@/components/shop/product-card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { Select } from "@/components/ui/Select";
 import { cn } from "@/lib/utils";
+import { useGetPublicProductsQuery } from "@/redux/products/products-api";
 import {
   categoryFilters,
+  categoryLabel,
   isoDaysFromNow,
   matchesPriceBand,
   priceBands,
-  products,
   readyBy,
   sortOptions,
-  type Category,
   type PriceBand,
   type SortKey,
 } from "@/lib/shop-data";
+import type { IProduct, ProductCategory } from "@/types/product.types";
 
 const PAGE_SIZE = 9;
 
@@ -61,8 +63,14 @@ function LabeledSelect({
 }
 
 export function ShopBrowser() {
+  // One fetch for the whole catalogue; filtering/sorting stays client-side so
+  // the toolbar feels instant (the bakery's range is small).
+  const { data, isLoading, isError, error, refetch } =
+    useGetPublicProductsQuery({ limit: 100 });
+  const products = useMemo(() => data?.data ?? [], [data]);
+
   const [query, setQuery] = useState("");
-  const [cat, setCat] = useState<"all" | Category>("all");
+  const [cat, setCat] = useState<"all" | ProductCategory>("all");
   const [sort, setSort] = useState<SortKey>("featured");
   const [priceBand, setPriceBand] = useState<PriceBand>("any");
   const [byDate, setByDate] = useState("");
@@ -78,21 +86,21 @@ export function ShopBrowser() {
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
     const filtered = products.filter(
-      (p) =>
-        (cat === "all" || p.cat === cat) &&
-        matchesPriceBand(p, priceBand) &&
-        readyBy(p, byDate) &&
+      (p: IProduct) =>
+        (cat === "all" || p.category === cat) &&
+        matchesPriceBand(p.price, priceBand) &&
+        readyBy(p.leadTimeDays, byDate) &&
         (!q ||
-          `${p.name} ${p.shortDesc} ${p.desc} ${p.catLabel}`
+          `${p.name} ${p.description ?? ""} ${categoryLabel(p.category)}`
             .toLowerCase()
             .includes(q)),
     );
     if (sort === "price-asc") return [...filtered].sort((a, b) => a.price - b.price);
     if (sort === "price-desc") return [...filtered].sort((a, b) => b.price - a.price);
-    if (sort === "fastest") return [...filtered].sort((a, b) => a.leadDays - b.leadDays);
+    if (sort === "fastest") return [...filtered].sort((a, b) => a.leadTimeDays - b.leadTimeDays);
     if (sort === "name") return [...filtered].sort((a, b) => a.name.localeCompare(b.name));
     return filtered;
-  }, [query, cat, sort, priceBand, byDate]);
+  }, [products, query, cat, sort, priceBand, byDate]);
 
   const pageCount = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
@@ -105,7 +113,7 @@ export function ShopBrowser() {
 
   // Every filter change returns to the first page.
   const pickCategory = (id: string) => {
-    setCat(id as "all" | Category);
+    setCat(id as "all" | ProductCategory);
     setPage(1);
   };
   const pickPriceBand = (id: string) => {
@@ -142,6 +150,33 @@ export function ShopBrowser() {
     setByDate("");
     setPage(1);
   };
+
+  if (isError) {
+    return <ErrorState error={error} onRetry={() => void refetch()} />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 gap-[clamp(20px,3vw,32px)] sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div
+            key={i}
+            className="h-[420px] animate-pulse rounded-[18px] bg-ink/[0.06]"
+          />
+        ))}
+      </div>
+    );
+  }
+
+  if (products.length === 0) {
+    return (
+      <EmptyState
+        title="The counter is empty right now."
+        description="We're restocking the shop - check back soon, or reach us on WhatsApp for a custom order."
+        className="my-2"
+      />
+    );
+  }
 
   const resultCount =
     list.length === products.length

@@ -25,6 +25,8 @@ export const apiSliceTags = [
   "AuditLogs",
   "Product",
   "Products",
+  "Customer",
+  "Customers",
   "DashboardStats",
 ] as const;
 
