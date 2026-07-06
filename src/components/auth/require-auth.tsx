@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Spinner } from "@/components/ui/Spinner";
+import { LoadingScreen } from "@/components/ui/Loader";
 import { useGetMeQuery, useLogoutMutation } from "@/redux/auth/auth-api";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
@@ -44,19 +44,11 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   // Once the check has failed, hold the loading screen while the redirect fires.
   // (getMe's onQueryStarted also clears the persisted user, so `cachedUser` is
   // null here — we never leak the console to an invalid session.)
-  if (isError) return <AuthCheckScreen />;
+  if (isError) return <LoadingScreen />;
 
   // Verified by /me, or optimistic from a persisted user while the check runs.
   if (data || cachedUser) return <>{children}</>;
 
   // First load with no persisted user: wait for /me before revealing anything.
-  return <AuthCheckScreen />;
-}
-
-function AuthCheckScreen() {
-  return (
-    <div className="grid min-h-screen place-items-center bg-cream">
-      <Spinner className="h-7 w-7" />
-    </div>
-  );
+  return <LoadingScreen />;
 }
