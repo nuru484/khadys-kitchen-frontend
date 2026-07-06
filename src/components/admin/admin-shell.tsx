@@ -3,10 +3,29 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { ADMIN_NAV, routeMeta } from "@/lib/admin/nav";
 import { AdminProvider } from "@/lib/admin/store";
+import { useLogoutMutation } from "@/redux/auth/auth-api";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import type { IUser } from "@/types/user.types";
+import { UserRole } from "@/types/user.types";
+
+const ROLE_LABELS: Record<UserRole, string> = {
+  [UserRole.SUPER_ADMIN]: "Owner · Admin",
+  [UserRole.ADMIN]: "Administrator",
+  [UserRole.STAFF]: "Staff",
+};
+
+function accountFor(user: IUser | null) {
+  if (!user) return { name: "Admin", meta: "Admin console", initials: "KA" };
+  const name = `${user.firstName} ${user.lastName}`.trim() || "Admin";
+  const initials =
+    `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase() ||
+    "A";
+  return { name, meta: ROLE_LABELS[user.role], initials };
+}
 
 function Wordmark({ light }: { light?: boolean }) {
   return (
@@ -17,7 +36,17 @@ function Wordmark({ light }: { light?: boolean }) {
   );
 }
 
-function Sidebar({ pathname }: { pathname: string }) {
+function Sidebar({
+  pathname,
+  account,
+  onLogout,
+  loggingOut,
+}: {
+  pathname: string;
+  account: { name: string; meta: string; initials: string };
+  onLogout: () => void;
+  loggingOut: boolean;
+}) {
   return (
     <aside className="sticky top-0 hidden h-screen w-[250px] flex-none flex-col bg-ink text-cream min-[1000px]:flex">
       <div className="border-b border-cream/15 px-[26px] pb-[22px] pt-[26px]">
@@ -56,19 +85,29 @@ function Sidebar({ pathname }: { pathname: string }) {
       <div className="grid gap-3 border-t border-cream/15 px-5 py-[18px]">
         <div className="flex items-center gap-3">
           <span className="grid h-[38px] w-[38px] place-items-center rounded-full bg-accent font-serif text-[15px] text-[#FDFAF3]">
-            KA
+            {account.initials}
           </span>
-          <div>
-            <div className="text-[14px] font-semibold">Khady Asante</div>
-            <div className="text-[12px] text-cream/55">Owner · Admin</div>
+          <div className="min-w-0">
+            <div className="truncate text-[14px] font-semibold">{account.name}</div>
+            <div className="text-[12px] text-cream/55">{account.meta}</div>
           </div>
         </div>
-        <Link
-          href="/"
-          className="text-[13px] text-cream/65 no-underline transition-colors hover:text-cream"
-        >
-          ← Back to site
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link
+            href="/"
+            className="text-[13px] text-cream/65 no-underline transition-colors hover:text-cream"
+          >
+            ← Back to site
+          </Link>
+          <button
+            type="button"
+            onClick={onLogout}
+            disabled={loggingOut}
+            className="cursor-pointer text-[13px] font-semibold text-accent-2 transition-colors hover:text-cream disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loggingOut ? "Signing out…" : "Sign out"}
+          </button>
+        </div>
       </div>
     </aside>
   );
@@ -78,10 +117,14 @@ function MobileMenu({
   open,
   onClose,
   pathname,
+  onLogout,
+  loggingOut,
 }: {
   open: boolean;
   onClose: () => void;
   pathname: string;
+  onLogout: () => void;
+  loggingOut: boolean;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -142,7 +185,7 @@ function MobileMenu({
           );
         })}
       </nav>
-      <div className="border-t border-cream/15 px-[clamp(22px,7vw,48px)] pb-9 pt-5">
+      <div className="flex items-center justify-between border-t border-cream/15 px-[clamp(22px,7vw,48px)] pb-9 pt-5">
         <Link
           href="/"
           onClick={onClose}
@@ -150,6 +193,17 @@ function MobileMenu({
         >
           ← Back to site
         </Link>
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            onLogout();
+          }}
+          disabled={loggingOut}
+          className="cursor-pointer text-[14px] font-semibold text-accent-2 transition-colors hover:text-cream disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {loggingOut ? "Signing out…" : "Sign out"}
+        </button>
       </div>
     </div>,
     document.body,
@@ -158,13 +212,32 @@ function MobileMenu({
 
 export function AdminShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const { crumb, title } = routeMeta(pathname);
+
+  const user = useCurrentUser();
+  const account = accountFor(user);
+  const [logout, { isLoading: loggingOut }] = useLogoutMutation();
+
+  const onLogout = async () => {
+    try {
+      await logout().unwrap();
+    } catch {
+      // The session is cleared client-side regardless (see logout onQueryStarted).
+    }
+    router.replace("/login");
+  };
 
   return (
     <AdminProvider>
       <div className="flex min-h-screen bg-cream text-ink">
-        <Sidebar pathname={pathname} />
+        <Sidebar
+          pathname={pathname}
+          account={account}
+          onLogout={onLogout}
+          loggingOut={loggingOut}
+        />
 
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="sticky top-0 z-40 flex items-center justify-between gap-3.5 border-b border-ink/10 bg-cream/95 px-[clamp(18px,3.5vw,36px)] py-4 backdrop-blur-[8px]">
@@ -198,6 +271,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
             open={menuOpen}
             onClose={() => setMenuOpen(false)}
             pathname={pathname}
+            onLogout={onLogout}
+            loggingOut={loggingOut}
           />
 
           <main className="mx-auto w-full max-w-[1180px] flex-1 p-[clamp(20px,3.5vw,36px)]">
