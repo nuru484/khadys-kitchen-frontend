@@ -55,6 +55,15 @@ export const trainingsApi = apiSlice.injectEndpoints({
       invalidatesTags: ["Trainings"],
     }),
 
+    // Uploads a single image (multipart) and returns its hosted URL. The create/
+    // update endpoints stay JSON — the form uploads the cover here first.
+    uploadTrainingImage: builder.mutation<
+      { message: string; data: { url: string } },
+      FormData
+    >({
+      query: (body) => ({ url: "admin/uploads/image", method: "POST", body }),
+    }),
+
     updateTraining: builder.mutation<
       ITrainingResponse,
       { id: string; body: Partial<ITrainingInput> }
@@ -131,6 +140,7 @@ export const {
   useGetTrainingsQuery,
   useGetTrainingByIdQuery,
   useCreateTrainingMutation,
+  useUploadTrainingImageMutation,
   useUpdateTrainingMutation,
   usePublishTrainingMutation,
   useUnpublishTrainingMutation,

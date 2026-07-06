@@ -1,22 +1,28 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, useWatch, type Path } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card } from "@/components/admin/ui";
+import { CoverImageField } from "@/components/admin/cover-image-field";
 import { TextField } from "@/components/ui/TextField";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
+import { cn } from "@/lib/utils";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
-import { useCreateTrainingMutation } from "@/redux/trainings/trainings-api";
+import {
+  useCreateTrainingMutation,
+  useUpdateTrainingMutation,
+} from "@/redux/trainings/trainings-api";
 import {
   FEE_KINDS,
   TRAINING_STATUSES,
   trainingSchema,
   type TrainingFormValues,
 } from "@/validations/training-schema";
-import type { ITrainingInput } from "@/types/training.types";
+import type { ITraining, ITrainingInput } from "@/types/training.types";
 
 const DEFAULTS: TrainingFormValues = {
   name: "",
@@ -79,217 +85,532 @@ function toInput(v: TrainingFormValues): ITrainingInput {
   };
 }
 
+function toForm(t: ITraining): TrainingFormValues {
+  return {
+    name: t.name,
+    numeral: t.numeral ?? "",
+    description: t.description,
+    coverImage: t.coverImage ?? "",
+    status: t.status as TrainingFormValues["status"],
+    applicationsOpen: t.applicationsOpen,
+    isPublished: t.isPublished,
+    startDate: t.startDate ? t.startDate.slice(0, 10) : "",
+    endDate: t.endDate ? t.endDate.slice(0, 10) : "",
+    capacity: t.capacity != null ? String(t.capacity) : "",
+    hostelCapacity: t.hostelCapacity != null ? String(t.hostelCapacity) : "",
+    tagline: t.tagline ?? "",
+    heroHeading: t.heroHeading ?? "",
+    heroSubtext: t.heroSubtext ?? "",
+    costsIntro: t.costsIntro ?? "",
+    costsNote: t.costsNote ?? "",
+    bringIntro: t.bringIntro ?? "",
+    stats: t.stats ?? [],
+    requirements: (t.requirements ?? []).map((r) => ({
+      name: r.name,
+      note: r.note ?? "",
+    })),
+    highlights: (t.highlights ?? []).map((v) => ({ value: v })),
+    feeItems: (t.feeItems ?? []).map((f) => ({
+      name: f.name,
+      amount: f.amount / 100,
+      kind: f.kind as (typeof FEE_KINDS)[number],
+      required: f.required,
+      note: f.note ?? "",
+      suffix: f.suffix ?? "",
+      priceLabel: f.priceLabel ?? "",
+    })),
+  };
+}
+
+const STEPS: { key: string; label: string; fields: Path<TrainingFormValues>[] }[] =
+  [
+    {
+      key: "hero",
+      label: "Hero",
+      fields: ["coverImage", "tagline", "heroHeading", "heroSubtext", "stats"],
+    },
+    {
+      key: "details",
+      label: "Pricing & details",
+      fields: [
+        "name",
+        "numeral",
+        "description",
+        "status",
+        "startDate",
+        "endDate",
+        "capacity",
+        "hostelCapacity",
+        "costsIntro",
+        "costsNote",
+        "feeItems",
+      ],
+    },
+    { key: "tools", label: "Tools to bring", fields: ["bringIntro", "requirements"] },
+    { key: "prospectus", label: "Prospectus", fields: ["highlights"] },
+  ];
+
 const labelCls =
   "text-[12.5px] font-semibold uppercase tracking-[0.06em] text-ink/60";
 const areaCls =
   "w-full rounded-[12px] border-[1.5px] border-ink/20 bg-cream px-[15px] py-3 font-sans text-[15px] text-ink outline-none transition-colors focus:border-accent";
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <h2 className="mb-4 font-serif text-[20px] font-normal text-ink">{children}</h2>
+    <label className="grid gap-[7px]">
+      <span className={labelCls}>{label}</span>
+      {children}
+    </label>
   );
 }
 
 function Toggle({
   label,
-  checked,
   ...props
-}: { label: string; checked?: boolean } & React.InputHTMLAttributes<HTMLInputElement>) {
+}: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <label className="flex cursor-pointer items-center gap-2.5 text-[14px] font-medium text-ink">
-      <input type="checkbox" className="h-4 w-4 accent-accent" checked={checked} {...props} />
+      <input type="checkbox" className="h-4 w-4 accent-accent" {...props} />
       {label}
     </label>
   );
 }
 
-export function TrainingForm() {
+export function TrainingForm({ training }: { training?: ITraining }) {
   const router = useRouter();
-  const [createTraining, { isLoading }] = useCreateTrainingMutation();
+  const isEdit = Boolean(training);
+  const [step, setStep] = useState(0);
+  const [createTraining, { isLoading: creating }] = useCreateTrainingMutation();
+  const [updateTraining, { isLoading: updating }] = useUpdateTrainingMutation();
+  const submitting = creating || updating;
 
   const {
     register,
     handleSubmit,
     control,
+    setValue,
+    trigger,
     formState: { errors },
   } = useForm<TrainingFormValues>({
     resolver: zodResolver(trainingSchema),
-    defaultValues: DEFAULTS,
+    defaultValues: training ? toForm(training) : DEFAULTS,
   });
 
   const fees = useFieldArray({ control, name: "feeItems" });
   const reqs = useFieldArray({ control, name: "requirements" });
   const stats = useFieldArray({ control, name: "stats" });
   const highlights = useFieldArray({ control, name: "highlights" });
+  const coverImage = useWatch({ control, name: "coverImage" }) ?? "";
+
+  const isLast = step === STEPS.length - 1;
+
+  const goNext = async () => {
+    const ok = await trigger(STEPS[step].fields);
+    if (ok) setStep((v) => Math.min(v + 1, STEPS.length - 1));
+  };
 
   const onSubmit = async (values: TrainingFormValues) => {
     try {
-      const res = await createTraining(toInput(values)).unwrap();
-      notify.success("Training created");
-      router.push(`/admin/classes/${res.data.id}`);
+      if (training) {
+        await updateTraining({ id: training.id, body: toInput(values) }).unwrap();
+        notify.success("Training updated");
+        router.push(`/admin/classes/${training.id}`);
+      } else {
+        const res = await createTraining(toInput(values)).unwrap();
+        notify.success("Training created");
+        router.push(`/admin/classes/${res.data.id}`);
+      }
     } catch (err) {
-      const { message } = extractApiError(err);
-      notify.error("Couldn't create the training", { description: message });
+      notify.error(
+        isEdit ? "Couldn't update the training" : "Couldn't create the training",
+        { description: extractApiError(err).message },
+      );
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="grid gap-[18px]">
-      {/* Basics */}
-      <Card className="p-[clamp(20px,3vw,28px)]">
-        <SectionTitle>Basics</SectionTitle>
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      // Keep Enter from submitting mid-wizard (textareas still allow newlines).
+      onKeyDown={(e) => {
+        if (e.key === "Enter" && (e.target as HTMLElement).tagName !== "TEXTAREA") {
+          e.preventDefault();
+        }
+      }}
+      className="grid gap-[18px]"
+    >
+      {/* Stepper */}
+      <div className="flex flex-wrap gap-2">
+        {STEPS.map((st, i) => (
+          <button
+            key={st.key}
+            type="button"
+            onClick={() => setStep(i)}
+            className={cn(
+              "rounded-full px-4 py-2 text-[13px] font-semibold transition-colors",
+              i === step
+                ? "bg-ink text-cream"
+                : "bg-ink/[0.06] text-ink/60 hover:bg-ink/10",
+            )}
+          >
+            {i + 1}. {st.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Step 1 — Hero */}
+      <Card className={cn("p-[clamp(20px,3vw,28px)]", step !== 0 && "hidden")}>
+        <h2 className="mb-4 font-serif text-[20px]">Hero</h2>
+        <div className="grid gap-[18px]">
+          <CoverImageField
+            value={coverImage}
+            onChange={(url) => setValue("coverImage", url, { shouldValidate: true })}
+          />
+          <TextField
+            label="Tagline / eyebrow"
+            placeholder="e.g. Khady’s Bake School · Kumasi"
+            {...register("tagline")}
+          />
+          <TextField
+            label="Hero heading"
+            placeholder="Leave blank to use the default animated heading"
+            {...register("heroHeading")}
+          />
+          <Field label="Hero subtext">
+            <textarea
+              rows={2}
+              className={areaCls}
+              placeholder="One or two sentences under the heading…"
+              {...register("heroSubtext")}
+            />
+          </Field>
+
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <span className={labelCls}>Hero stats (max 4)</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={stats.fields.length >= 4}
+                onClick={() => stats.append({ value: "", label: "" })}
+              >
+                + Add stat
+              </Button>
+            </div>
+            <div className="grid gap-3">
+              {stats.fields.map((field, i) => (
+                <div key={field.id} className="flex flex-wrap items-end gap-3">
+                  <TextField
+                    label="Value"
+                    className="min-w-[120px]"
+                    placeholder="e.g. Weekly"
+                    {...register(`stats.${i}.value`)}
+                  />
+                  <TextField
+                    label="Label"
+                    className="min-w-[160px]"
+                    placeholder="e.g. Practicals"
+                    {...register(`stats.${i}.label`)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => stats.remove(i)}
+                    className="pb-3 text-[13px] font-semibold text-danger"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Step 2 — Pricing & details */}
+      <Card className={cn("p-[clamp(20px,3vw,28px)]", step !== 1 && "hidden")}>
+        <h2 className="mb-4 font-serif text-[20px]">Pricing &amp; details</h2>
         <div className="grid gap-[18px]">
           <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-[18px]">
-            <TextField label="Cohort name" error={errors.name?.message} {...register("name")} />
-            <TextField label="Numeral (e.g. 01)" error={errors.numeral?.message} {...register("numeral")} />
+            <TextField
+              label="Cohort name"
+              placeholder="e.g. Bake School — August 2026 Cohort"
+              error={errors.name?.message}
+              {...register("name")}
+            />
+            <TextField
+              label="Numeral"
+              placeholder="e.g. 01"
+              error={errors.numeral?.message}
+              {...register("numeral")}
+            />
           </div>
-          <div className="grid gap-[7px]">
-            <span className={labelCls}>Description</span>
-            <textarea rows={3} className={areaCls} {...register("description")} />
+          <Field label="Description">
+            <textarea
+              rows={3}
+              className={areaCls}
+              placeholder="What the programme is about, what students achieve…"
+              {...register("description")}
+            />
             {errors.description ? (
-              <span className="text-[13px] text-danger">{errors.description.message}</span>
+              <span className="text-[13px] text-danger">
+                {errors.description.message}
+              </span>
             ) : null}
-          </div>
-          <TextField label="Cover image URL" error={errors.coverImage?.message} {...register("coverImage")} />
+          </Field>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,180px),1fr))] gap-[18px]">
-            <div className="grid gap-[7px]">
-              <span className={labelCls}>Status</span>
+            <Field label="Status">
               <Select className="py-3" {...register("status")}>
                 {TRAINING_STATUSES.map((st) => (
-                  <option key={st} value={st}>{st}</option>
+                  <option key={st} value={st}>
+                    {st}
+                  </option>
                 ))}
               </Select>
-            </div>
+            </Field>
             <TextField label="Start date" type="date" {...register("startDate")} />
             <TextField label="End date" type="date" {...register("endDate")} />
           </div>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,180px),1fr))] gap-[18px]">
-            <TextField label="Capacity" type="number" error={errors.capacity?.message} {...register("capacity")} />
-            <TextField label="Hostel capacity" type="number" error={errors.hostelCapacity?.message} {...register("hostelCapacity")} />
+            <TextField
+              label="Capacity"
+              type="number"
+              placeholder="e.g. 40"
+              error={errors.capacity?.message}
+              {...register("capacity")}
+            />
+            <TextField
+              label="Hostel capacity"
+              type="number"
+              placeholder="e.g. 12"
+              error={errors.hostelCapacity?.message}
+              {...register("hostelCapacity")}
+            />
           </div>
           <div className="flex flex-wrap gap-6">
             <Toggle label="Accepting applications" {...register("applicationsOpen")} />
             <Toggle label="Published (visible on the website)" {...register("isPublished")} />
           </div>
+
+          <Field label="Costs intro">
+            <textarea
+              rows={2}
+              className={areaCls}
+              placeholder="Short line above the fee table…"
+              {...register("costsIntro")}
+            />
+          </Field>
+          <Field label="Costs note (hostel reminder etc.)">
+            <textarea
+              rows={2}
+              className={areaCls}
+              placeholder="e.g. Indicate early — the hostel takes only 12 students."
+              {...register("costsNote")}
+            />
+          </Field>
+
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <span className={labelCls}>Fee table</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  fees.append({
+                    name: "",
+                    amount: 0,
+                    kind: "OTHER",
+                    required: true,
+                    note: "",
+                    suffix: "",
+                    priceLabel: "",
+                  })
+                }
+              >
+                + Add fee
+              </Button>
+            </div>
+            <div className="grid gap-4">
+              {fees.fields.length === 0 ? (
+                <p className="text-[14px] text-ink/50">
+                  No fees yet. Add registration, hostel, ingredients, etc.
+                </p>
+              ) : null}
+              {fees.fields.map((field, i) => (
+                <div
+                  key={field.id}
+                  className="grid gap-3 rounded-[14px] border border-ink/10 bg-oat/40 p-4"
+                >
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,160px),1fr))] gap-3">
+                    <TextField
+                      label="Name"
+                      placeholder="e.g. Registration and school fees"
+                      error={errors.feeItems?.[i]?.name?.message}
+                      {...register(`feeItems.${i}.name`)}
+                    />
+                    <TextField
+                      label="Amount (GHS)"
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      {...register(`feeItems.${i}.amount`, { valueAsNumber: true })}
+                    />
+                    <Field label="Kind">
+                      <Select className="py-3" {...register(`feeItems.${i}.kind`)}>
+                        {FEE_KINDS.map((k) => (
+                          <option key={k} value={k}>
+                            {k}
+                          </option>
+                        ))}
+                      </Select>
+                    </Field>
+                  </div>
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,160px),1fr))] gap-3">
+                    <TextField
+                      label="Note"
+                      placeholder="Optional note"
+                      {...register(`feeItems.${i}.note`)}
+                    />
+                    <TextField
+                      label="Suffix"
+                      placeholder="e.g. for 2 months"
+                      {...register(`feeItems.${i}.suffix`)}
+                    />
+                    <TextField
+                      label="Price label"
+                      placeholder="e.g. Free or —"
+                      {...register(`feeItems.${i}.priceLabel`)}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Toggle
+                      label="Charged (part of the bill)"
+                      {...register(`feeItems.${i}.required`)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fees.remove(i)}
+                      className="text-[13px] font-semibold text-danger"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </Card>
 
-      {/* Class-page copy */}
-      <Card className="p-[clamp(20px,3vw,28px)]">
-        <SectionTitle>Class page copy</SectionTitle>
-        <div className="grid gap-[18px]">
-          <TextField label="Hero eyebrow / tagline" {...register("tagline")} />
-          <TextField label="Hero heading (leave blank for the default)" {...register("heroHeading")} />
-          <div className="grid gap-[7px]">
-            <span className={labelCls}>Hero subtext</span>
-            <textarea rows={2} className={areaCls} {...register("heroSubtext")} />
-          </div>
-          <div className="grid gap-[7px]">
-            <span className={labelCls}>Costs intro</span>
-            <textarea rows={2} className={areaCls} {...register("costsIntro")} />
-          </div>
-          <div className="grid gap-[7px]">
-            <span className={labelCls}>Costs note (hostel reminder etc.)</span>
-            <textarea rows={2} className={areaCls} {...register("costsNote")} />
-          </div>
-          <div className="grid gap-[7px]">
-            <span className={labelCls}>What-to-bring intro</span>
-            <textarea rows={2} className={areaCls} {...register("bringIntro")} />
-          </div>
-        </div>
-      </Card>
-
-      {/* Fee items */}
-      <Card className="p-[clamp(20px,3vw,28px)]">
+      {/* Step 3 — Tools to bring */}
+      <Card className={cn("p-[clamp(20px,3vw,28px)]", step !== 2 && "hidden")}>
         <div className="mb-4 flex items-center justify-between">
-          <SectionTitle>Fee table</SectionTitle>
-          <Button type="button" variant="outline" size="sm" onClick={() => fees.append({ name: "", amount: 0, kind: "OTHER", required: true, note: "", suffix: "", priceLabel: "" })}>
-            + Add fee
+          <h2 className="font-serif text-[20px]">Tools to bring</h2>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => reqs.append({ name: "", note: "" })}
+          >
+            + Add item
           </Button>
         </div>
-        <div className="grid gap-4">
-          {fees.fields.length === 0 ? (
-            <p className="text-[14px] text-ink/50">No fees yet. Add the registration, hostel, ingredients, etc.</p>
-          ) : null}
-          {fees.fields.map((field, i) => (
-            <div key={field.id} className="grid gap-3 rounded-[14px] border border-ink/10 bg-oat/40 p-4">
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,160px),1fr))] gap-3">
-                <TextField label="Name" error={errors.feeItems?.[i]?.name?.message} {...register(`feeItems.${i}.name`)} />
-                <TextField label="Amount (GHS)" type="number" step="0.01" {...register(`feeItems.${i}.amount`, { valueAsNumber: true })} />
-                <div className="grid gap-[7px]">
-                  <span className={labelCls}>Kind</span>
-                  <Select className="py-3" {...register(`feeItems.${i}.kind`)}>
-                    {FEE_KINDS.map((k) => (<option key={k} value={k}>{k}</option>))}
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,160px),1fr))] gap-3">
-                <TextField label="Note" {...register(`feeItems.${i}.note`)} />
-                <TextField label="Suffix (e.g. for 2 months)" {...register(`feeItems.${i}.suffix`)} />
-                <TextField label="Price label (Free / — )" {...register(`feeItems.${i}.priceLabel`)} />
-              </div>
-              <div className="flex items-center justify-between">
-                <Toggle label="Charged (part of the bill)" {...register(`feeItems.${i}.required`)} />
-                <button type="button" onClick={() => fees.remove(i)} className="text-[13px] font-semibold text-danger">Remove</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      {/* Stats */}
-      <Card className="p-[clamp(20px,3vw,28px)]">
-        <div className="mb-4 flex items-center justify-between">
-          <SectionTitle>Hero stats</SectionTitle>
-          <Button type="button" variant="outline" size="sm" onClick={() => stats.append({ value: "", label: "" })}>+ Add stat</Button>
-        </div>
-        <div className="grid gap-3">
-          {stats.fields.map((field, i) => (
-            <div key={field.id} className="flex flex-wrap items-end gap-3">
-              <TextField label="Value" className="min-w-[120px]" {...register(`stats.${i}.value`)} />
-              <TextField label="Label" className="min-w-[160px]" {...register(`stats.${i}.label`)} />
-              <button type="button" onClick={() => stats.remove(i)} className="pb-3 text-[13px] font-semibold text-danger">Remove</button>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      {/* Requirements (items to bring) */}
-      <Card className="p-[clamp(20px,3vw,28px)]">
-        <div className="mb-4 flex items-center justify-between">
-          <SectionTitle>Items to bring</SectionTitle>
-          <Button type="button" variant="outline" size="sm" onClick={() => reqs.append({ name: "", note: "" })}>+ Add item</Button>
-        </div>
+        <Field label="Intro">
+          <textarea
+            rows={2}
+            className={cn(areaCls, "mb-4")}
+            placeholder="Short line above the items-to-bring…"
+            {...register("bringIntro")}
+          />
+        </Field>
         <div className="grid gap-3">
           {reqs.fields.map((field, i) => (
             <div key={field.id} className="flex flex-wrap items-end gap-3">
-              <TextField label="Item" className="min-w-[160px]" {...register(`requirements.${i}.name`)} />
-              <TextField label="Note / price" className="min-w-[160px]" {...register(`requirements.${i}.note`)} />
-              <button type="button" onClick={() => reqs.remove(i)} className="pb-3 text-[13px] font-semibold text-danger">Remove</button>
+              <TextField
+                label="Item"
+                className="min-w-[160px]"
+                placeholder="e.g. Hand mixer"
+                {...register(`requirements.${i}.name`)}
+              />
+              <TextField
+                label="Note / price"
+                className="min-w-[160px]"
+                placeholder="e.g. ≈ GHS 250"
+                {...register(`requirements.${i}.note`)}
+              />
+              <button
+                type="button"
+                onClick={() => reqs.remove(i)}
+                className="pb-3 text-[13px] font-semibold text-danger"
+              >
+                Remove
+              </button>
             </div>
           ))}
         </div>
       </Card>
 
-      {/* Highlights / prospectus */}
-      <Card className="p-[clamp(20px,3vw,28px)]">
+      {/* Step 4 — Prospectus */}
+      <Card className={cn("p-[clamp(20px,3vw,28px)]", step !== 3 && "hidden")}>
         <div className="mb-4 flex items-center justify-between">
-          <SectionTitle>Prospectus / highlights</SectionTitle>
-          <Button type="button" variant="outline" size="sm" onClick={() => highlights.append({ value: "" })}>+ Add</Button>
+          <h2 className="font-serif text-[20px]">Prospectus / highlights</h2>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => highlights.append({ value: "" })}
+          >
+            + Add
+          </Button>
         </div>
         <div className="grid gap-3">
           {highlights.fields.map((field, i) => (
             <div key={field.id} className="flex items-end gap-3">
-              <TextField label={`Item ${String(i + 1)}`} className="min-w-[220px]" {...register(`highlights.${i}.value`)} />
-              <button type="button" onClick={() => highlights.remove(i)} className="pb-3 text-[13px] font-semibold text-danger">Remove</button>
+              <TextField
+                label={`Item ${String(i + 1)}`}
+                className="min-w-[220px]"
+                placeholder="e.g. CTVET certificate · GHS 300"
+                {...register(`highlights.${i}.value`)}
+              />
+              <button
+                type="button"
+                onClick={() => highlights.remove(i)}
+                className="pb-3 text-[13px] font-semibold text-danger"
+              >
+                Remove
+              </button>
             </div>
           ))}
         </div>
       </Card>
 
-      <div className="flex justify-end gap-3">
-        <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
-        <Button type="submit" isLoading={isLoading} loadingText="Creating…">Create training</Button>
+      {/* Footer nav */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Button type="button" variant="ghost" onClick={() => router.back()}>
+          Cancel
+        </Button>
+        <div className="flex gap-3">
+          {step > 0 ? (
+            <Button type="button" variant="outline" onClick={() => setStep((v) => v - 1)}>
+              Back
+            </Button>
+          ) : null}
+          {isLast ? (
+            <Button
+              type="submit"
+              isLoading={submitting}
+              loadingText={isEdit ? "Saving…" : "Creating…"}
+            >
+              {isEdit ? "Save changes" : "Create training"}
+            </Button>
+          ) : (
+            <Button type="button" onClick={goNext}>
+              Next
+            </Button>
+          )}
+        </div>
       </div>
     </form>
   );

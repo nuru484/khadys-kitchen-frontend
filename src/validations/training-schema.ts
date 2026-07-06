@@ -68,7 +68,7 @@ export const trainingSchema = z.object({
   bringIntro: z.string().trim().max(1000).optional(),
   feeItems: z.array(feeItemSchema),
   requirements: z.array(requirementSchema),
-  stats: z.array(statSchema),
+  stats: z.array(statSchema).max(4, "At most 4 hero stats"),
   // Modeled as objects so react-hook-form's useFieldArray has stable ids.
   highlights: z.array(z.object({ value: z.string().trim().min(1).max(300) })),
 });
