@@ -1,14 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Card } from "@/components/admin/ui";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
 import { ErrorState } from "@/components/ui/ErrorState";
-import { Modal } from "@/components/ui/Modal";
-import { TextField } from "@/components/ui/TextField";
 import { RippleLoader } from "@/components/ui/Loader";
 import { useConfirm } from "@/components/admin/use-confirm";
 import { notify } from "@/lib/notify";
@@ -19,8 +16,6 @@ import {
   useDeleteStudentMutation,
   useGetStudentByIdQuery,
   useGetStudentPaymentsQuery,
-  useIssueCertificateMutation,
-  useRevokeCertificateMutation,
   useSetStudentStatusMutation,
 } from "@/redux/students/students-api";
 
@@ -30,13 +25,9 @@ export default function StudentDetailPage() {
   const { data, isLoading, isError, error, refetch } = useGetStudentByIdQuery(id);
   const { data: pay } = useGetStudentPaymentsQuery(id);
   const [setStatus, { isLoading: statusBusy }] = useSetStudentStatusMutation();
-  const [issueCert, { isLoading: issuing }] = useIssueCertificateMutation();
-  const [revokeCert] = useRevokeCertificateMutation();
   const [deleteStudent] = useDeleteStudentMutation();
 
   const { confirm, dialog } = useConfirm();
-  const [certOpen, setCertOpen] = useState(false);
-  const [certNumber, setCertNumber] = useState("");
 
   const student = data?.data;
 
@@ -69,16 +60,6 @@ export default function StudentDetailPage() {
 
   const changeStatus = (action: "suspend" | "activate" | "graduate") =>
     run(() => setStatus({ id, action }).unwrap(), "Status updated");
-
-  const onIssueCert = async () => {
-    await run(
-      () =>
-        issueCert({ id, certificateNumber: certNumber.trim() || undefined }).unwrap(),
-      "Certificate issued",
-    );
-    setCertOpen(false);
-    setCertNumber("");
-  };
 
   const onDelete = async () => {
     await run(() => deleteStudent(id).unwrap(), "Student deleted");
@@ -164,24 +145,6 @@ export default function StudentDetailPage() {
               Graduate
             </Button>
           ) : null}
-          {student.certificateIssued ? (
-            <Button
-              variant="outline"
-              onClick={() =>
-                confirm({
-                  title: "Revoke certificate?",
-                  description: "This removes the issued certificate from the record.",
-                  confirmText: "Revoke",
-                  isDestructive: true,
-                  onConfirm: () => run(() => revokeCert(id).unwrap(), "Certificate revoked"),
-                })
-              }
-            >
-              Revoke certificate
-            </Button>
-          ) : (
-            <Button onClick={() => setCertOpen(true)}>Issue certificate</Button>
-          )}
           <Button
             variant="danger"
             onClick={() =>
@@ -203,17 +166,7 @@ export default function StudentDetailPage() {
         <Card className="p-[clamp(20px,3vw,28px)]">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-serif text-[19px]">Details</h2>
-            <div className="flex flex-wrap items-center gap-2">
-              <StatusBadge status={student.status} />
-              <StatusBadge
-                status={student.certificateIssued ? "ISSUED" : "NOT ISSUED"}
-                label={
-                  student.certificateIssued
-                    ? `Certificate${student.certificateNumber ? ` · ${student.certificateNumber}` : ""}`
-                    : "No certificate"
-                }
-              />
-            </div>
+            <StatusBadge status={student.status} />
           </div>
           <div className="grid gap-2.5">
             {info.map(([label, value]) => (
@@ -271,24 +224,6 @@ export default function StudentDetailPage() {
           )}
         </Card>
       </div>
-
-      <Modal open={certOpen} onClose={() => setCertOpen(false)}>
-        <h2 className="mb-4 font-serif text-[22px]">Issue certificate</h2>
-        <TextField
-          label="Certificate number (optional)"
-          value={certNumber}
-          onChange={(e) => setCertNumber(e.target.value)}
-          placeholder="e.g. CTVET-2026-001"
-        />
-        <div className="mt-5 flex justify-end gap-3">
-          <Button variant="outline" onClick={() => setCertOpen(false)}>
-            Cancel
-          </Button>
-          <Button isLoading={issuing} loadingText="Issuing…" onClick={onIssueCert}>
-            Issue
-          </Button>
-        </div>
-      </Modal>
 
       {dialog}
     </div>

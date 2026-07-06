@@ -2,10 +2,11 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { ADMIN_NAV_GROUPS, routeMeta } from "@/lib/admin/nav";
+import { ADMIN_NAV_ITEMS, routeMeta } from "@/lib/admin/nav";
 import { AdminProvider } from "@/lib/admin/store";
 import { useLogoutMutation } from "@/redux/auth/auth-api";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -19,12 +20,18 @@ const ROLE_LABELS: Record<UserRole, string> = {
 };
 
 function accountFor(user: IUser | null) {
-  if (!user) return { name: "Admin", meta: "Admin console", initials: "KA" };
+  if (!user)
+    return { name: "Admin", meta: "Admin console", initials: "KA", picture: null };
   const name = `${user.firstName} ${user.lastName}`.trim() || "Admin";
   const initials =
     `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase() ||
     "A";
-  return { name, meta: ROLE_LABELS[user.role], initials };
+  return {
+    name,
+    meta: ROLE_LABELS[user.role],
+    initials,
+    picture: user.profilePicture,
+  };
 }
 
 function Wordmark({ light }: { light?: boolean }) {
@@ -43,7 +50,7 @@ function Sidebar({
   loggingOut,
 }: {
   pathname: string;
-  account: { name: string; meta: string; initials: string };
+  account: { name: string; meta: string; initials: string; picture: string | null };
   onLogout: () => void;
   loggingOut: boolean;
 }) {
@@ -55,51 +62,40 @@ function Sidebar({
           Admin console
         </div>
       </div>
-      <nav className="flex flex-1 flex-col overflow-y-auto p-3.5">
-        {ADMIN_NAV_GROUPS.map((group) => (
-          <div key={group.heading} className="grid gap-0.5 [&:not(:first-child)]:mt-3">
-            <div className="px-3.5 pb-1 pt-1.5 text-[10.5px] font-semibold uppercase tracking-[0.2em] text-cream/40">
-              {group.heading}
-            </div>
-            {group.items.map((n) => {
-              const base =
-                "flex items-center rounded-[12px] px-3.5 py-[9px] text-[14px] font-semibold no-underline transition-colors";
-              if (n.href === "#") {
-                return (
-                  <span
-                    key={n.label}
-                    aria-disabled="true"
-                    title="Coming soon"
-                    className={cn(base, "cursor-default text-cream/35")}
-                  >
-                    {n.label}
-                  </span>
-                );
-              }
-              const active = n.isActive(pathname);
-              return (
-                <Link
-                  key={n.label}
-                  href={n.href}
-                  className={cn(
-                    base,
-                    active
-                      ? "bg-cream/10 text-cream"
-                      : "text-cream/65 hover:bg-cream/10 hover:text-cream",
-                  )}
-                >
-                  {n.label}
-                </Link>
-              );
-            })}
-          </div>
-        ))}
+      <nav className="grid flex-1 content-start gap-0.5 overflow-y-auto p-3.5">
+        {ADMIN_NAV_ITEMS.map((n) => {
+          const active = n.isActive(pathname);
+          return (
+            <Link
+              key={n.label}
+              href={n.href}
+              className={cn(
+                "flex items-center rounded-[12px] px-3.5 py-[9px] text-[14px] font-semibold no-underline transition-colors",
+                active
+                  ? "bg-cream/10 text-cream"
+                  : "text-cream/65 hover:bg-cream/10 hover:text-cream",
+              )}
+            >
+              {n.label}
+            </Link>
+          );
+        })}
       </nav>
       <div className="grid gap-3 border-t border-cream/15 px-5 py-[18px]">
         <div className="flex items-center gap-3">
-          <span className="grid h-[38px] w-[38px] place-items-center rounded-full bg-accent font-serif text-[15px] text-[#FDFAF3]">
-            {account.initials}
-          </span>
+          {account.picture ? (
+            <Image
+              src={account.picture}
+              alt={account.name}
+              width={38}
+              height={38}
+              className="h-[38px] w-[38px] flex-none rounded-full object-cover"
+            />
+          ) : (
+            <span className="grid h-[38px] w-[38px] flex-none place-items-center rounded-full bg-accent font-serif text-[15px] text-[#FDFAF3]">
+              {account.initials}
+            </span>
+          )}
           <div className="min-w-0">
             <div className="truncate text-[14px] font-semibold">{account.name}</div>
             <div className="text-[12px] text-cream/55">{account.meta}</div>
@@ -177,40 +173,23 @@ function MobileMenu({
           ✕
         </button>
       </div>
-      <nav className="flex flex-1 flex-col overflow-y-auto px-[clamp(22px,7vw,48px)] py-6">
-        {ADMIN_NAV_GROUPS.map((group) => (
-          <div key={group.heading} className="grid gap-0.5 [&:not(:first-child)]:mt-5">
-            <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-2">
-              {group.heading}
-            </div>
-            {group.items.map((n) => {
-              const base =
-                "py-1 font-serif text-[clamp(20px,5.5vw,26px)] leading-[1.25] no-underline";
-              if (n.href === "#") {
-                return (
-                  <span
-                    key={n.label}
-                    aria-disabled="true"
-                    className={cn(base, "text-cream/30")}
-                  >
-                    {n.label}
-                  </span>
-                );
-              }
-              const active = n.isActive(pathname);
-              return (
-                <Link
-                  key={n.label}
-                  href={n.href}
-                  onClick={onClose}
-                  className={cn(base, active ? "text-accent-2" : "text-cream")}
-                >
-                  {n.label}
-                </Link>
-              );
-            })}
-          </div>
-        ))}
+      <nav className="grid flex-1 content-start gap-0.5 overflow-y-auto px-[clamp(22px,7vw,48px)] py-6">
+        {ADMIN_NAV_ITEMS.map((n) => {
+          const active = n.isActive(pathname);
+          return (
+            <Link
+              key={n.label}
+              href={n.href}
+              onClick={onClose}
+              className={cn(
+                "py-1 font-serif text-[clamp(20px,5.5vw,26px)] leading-[1.25] no-underline",
+                active ? "text-accent-2" : "text-cream",
+              )}
+            >
+              {n.label}
+            </Link>
+          );
+        })}
       </nav>
       <div className="flex items-center justify-between border-t border-cream/15 px-[clamp(22px,7vw,48px)] pb-9 pt-5">
         <Link

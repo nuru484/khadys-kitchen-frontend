@@ -27,7 +27,7 @@ export interface IStudentUpdateInput {
 }
 
 /** Students (admitted applicants) — list/detail/CRUD, lifecycle (suspend /
- * activate / graduate), certificate issuance, and payment details. */
+ * activate / graduate), and payment details. */
 export const studentsApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getStudents: builder.query<IStudentListResponse, IStudentListQuery | void>({
@@ -99,23 +99,6 @@ export const studentsApi = apiSlice.injectEndpoints({
       invalidatesTags: (_r, _e, { id }) => [{ type: "Student", id }, "Students"],
     }),
 
-    issueCertificate: builder.mutation<
-      IStudentResponse,
-      { id: string; certificateNumber?: string }
-    >({
-      query: ({ id, certificateNumber }) => ({
-        url: `admin/students/${id}/certificate`,
-        method: "POST",
-        body: { certificateNumber },
-      }),
-      invalidatesTags: (_r, _e, { id }) => [{ type: "Student", id }, "Students"],
-    }),
-
-    revokeCertificate: builder.mutation<IStudentResponse, string>({
-      query: (id) => ({ url: `admin/students/${id}/certificate`, method: "DELETE" }),
-      invalidatesTags: (_r, _e, id) => [{ type: "Student", id }, "Students"],
-    }),
-
     deleteStudent: builder.mutation<IMessageResponse, string>({
       query: (id) => ({ url: `admin/students/${id}`, method: "DELETE" }),
       invalidatesTags: (_r, _e, id) => [
@@ -134,7 +117,5 @@ export const {
   useCreateStudentMutation,
   useUpdateStudentMutation,
   useSetStudentStatusMutation,
-  useIssueCertificateMutation,
-  useRevokeCertificateMutation,
   useDeleteStudentMutation,
 } = studentsApi;

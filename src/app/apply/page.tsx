@@ -7,12 +7,11 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata({
   title: "Apply to the Bake School",
   description:
-    "Learn to bake the way Khady does. A hands-on programme with weekly practicals, ingredients and tools provided, and a CTVET certificate. Apply to the next cohort in Kumasi.",
+    "Learn to bake the way Khady does. A hands-on programme with weekly practicals, ingredients and tools provided. Apply to the next cohort in Kumasi.",
   path: "/apply",
   keywords: [
     "baking classes Kumasi",
     "bake school Ghana",
-    "CTVET baking certificate",
     "learn to bake Kumasi",
     "pastry course Ghana",
   ],

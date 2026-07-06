@@ -13,8 +13,7 @@ import { useTableQuery } from "@/hooks/use-table-query";
 import { useGetStudentsQuery } from "@/redux/students/students-api";
 
 const STATUS_FILTERS = ["all", "ACTIVE", "SUSPENDED", "GRADUATED", "WITHDRAWN"];
-const CERT_FILTERS = ["all", "issued", "not issued"];
-const DEFAULTS = { status: "all", cert: "all" };
+const DEFAULTS = { status: "all" };
 const PAGE_SIZE = 10;
 
 /** Students table — standalone or scoped to a training via `trainingId`. */
@@ -36,14 +35,11 @@ export function StudentsTable({
       trainingId,
       search: (queryParams.search as string | undefined) ?? undefined,
       status: filters.status !== "all" ? filters.status : undefined,
-      certificateIssued:
-        filters.cert === "all" ? undefined : filters.cert === "issued",
     });
 
   const rows = data?.data ?? [];
   const meta = data?.meta;
-  const activeCount =
-    (filters.status !== "all" ? 1 : 0) + (filters.cert !== "all" ? 1 : 0);
+  const activeCount = filters.status !== "all" ? 1 : 0;
   const hasActiveFilters = Boolean(search.trim()) || activeCount > 0;
 
   return (
@@ -64,18 +60,6 @@ export function StudentsTable({
           {STATUS_FILTERS.map((f) => (
             <option key={f} value={f}>
               {f === "all" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
-            </option>
-          ))}
-        </LabeledSelect>
-        <LabeledSelect
-          label="Certificate"
-          value={filters.cert}
-          active={filters.cert !== "all"}
-          onChange={(v) => setFilter("cert", v)}
-        >
-          {CERT_FILTERS.map((f) => (
-            <option key={f} value={f}>
-              {f === "all" ? "All" : f.charAt(0) + f.slice(1)}
             </option>
           ))}
         </LabeledSelect>
@@ -108,7 +92,6 @@ export function StudentsTable({
                     <th className="px-6 py-3.5 font-semibold">Student</th>
                     <th className="px-4 py-3.5 font-semibold">Phone</th>
                     <th className="px-4 py-3.5 font-semibold">Status</th>
-                    <th className="px-4 py-3.5 font-semibold">Certificate</th>
                     <th className="px-6 py-3.5" />
                   </tr>
                 </thead>
@@ -134,12 +117,6 @@ export function StudentsTable({
                       </td>
                       <td className="px-4 py-4">
                         <StatusBadge status={st.status} />
-                      </td>
-                      <td className="px-4 py-4">
-                        <StatusBadge
-                          status={st.certificateIssued ? "ISSUED" : "NOT ISSUED"}
-                          label={st.certificateIssued ? "Issued" : "Not issued"}
-                        />
                       </td>
                       <td className="px-6 py-4 text-right text-ink/40">→</td>
                     </tr>

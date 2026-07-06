@@ -536,7 +536,7 @@ export function TrainingForm({ training }: { training?: ITraining }) {
               <div className="flex-1">
                 <TextField
                   label={`Item ${String(i + 1)}`}
-                  placeholder="e.g. CTVET certificate · GHS 300"
+                  placeholder="e.g. Recipe book · GHS 50"
                   {...register(`highlights.${i}.value`)}
                 />
               </div>

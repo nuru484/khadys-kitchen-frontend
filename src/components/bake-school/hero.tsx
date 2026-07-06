@@ -5,7 +5,7 @@ import { Reveal } from "@/components/reveal";
 // render in the class-info section below it.
 const EYEBROW = "Khady’s Bake School · Kumasi";
 const SUBTEXT =
-  "A hands-on programme with practicals every week - you bake, you learn, and you take your cake home. Finish with a CTVET certificate and the confidence to run your own oven.";
+  "A hands-on programme with practicals every week - you bake, you learn, and you take your cake home. Finish with the confidence to run your own oven.";
 const IMAGE =
   "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=1200&q=80&auto=format&fit=crop";
 

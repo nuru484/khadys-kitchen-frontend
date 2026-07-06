@@ -13,9 +13,6 @@ export interface IStudent {
   enrolledAt: string;
   graduatedAt: string | null;
   suspendedAt: string | null;
-  certificateIssued: boolean;
-  certificateNumber: string | null;
-  certificateIssuedAt: string | null;
   createdAt: string;
   updatedAt: string;
   training?: { id: string; name: string; numeral: string | null; slug: string };
@@ -53,6 +50,5 @@ export interface IStudentListQuery {
   limit?: number;
   trainingId?: string;
   status?: string;
-  certificateIssued?: boolean;
   search?: string;
 }

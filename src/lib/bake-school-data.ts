@@ -114,7 +114,6 @@ export const tools: Tool[] = [
 
 export const prospectus: string[] = [
   "Uniform · GHS 250",
-  "CTVET certificate · GHS 300",
   "Recipe book · GHS 50",
   "Storage bowl",
   "Washing powder · 5 kg",

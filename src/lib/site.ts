@@ -40,7 +40,6 @@ export const siteConfig = {
     "wedding cake Ghana",
     "baking classes Kumasi",
     "bake school Ghana",
-    "CTVET baking certificate",
     "bofrot",
     "meat pies Kumasi",
     "patisserie Kumasi",

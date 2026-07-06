@@ -7,7 +7,6 @@ const PILLS = [
   "Weekly practicals",
   "95% ingredients provided",
   "Hostel for 12 students",
-  "CTVET certificate",
 ];
 
 export function BakeSchoolCta() {
@@ -27,7 +26,7 @@ export function BakeSchoolCta() {
           <p className="mb-7 max-w-[48ch] text-[16.5px] leading-[1.7] text-cream/75">
             Hands-on classes with weekly practicals - you bake every week and
             take your cake home. 95% of ingredients and tools provided, hostel
-            available, CTVET certificate on completion.
+            available.
           </p>
           <div className="mb-8 flex flex-wrap gap-2.5">
             {PILLS.map((pill) => (
