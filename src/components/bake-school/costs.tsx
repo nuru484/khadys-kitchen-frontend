@@ -14,7 +14,7 @@ export function Costs() {
         </h2>
       </Reveal>
       <p className="mx-auto mb-[clamp(36px,5vw,56px)] max-w-[52ch] text-center text-[16px] leading-[1.65] text-ink/65">
-        Everything is transparent — here is exactly what the programme costs and
+        Everything is transparent - here is exactly what the programme costs and
         what is covered for you.
       </p>
 
@@ -22,9 +22,9 @@ export function Costs() {
         {fees.map((fee) => (
           <div
             key={fee.num}
-            className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2.5 border-b border-ink/[0.09] px-[clamp(20px,3.5vw,36px)] py-[clamp(20px,3vw,28px)]"
+            className="flex flex-col gap-2.5 border-b border-ink/[0.09] px-[clamp(20px,3.5vw,36px)] py-[clamp(20px,3vw,28px)] sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-6"
           >
-            <div className="flex flex-[1_1_320px] items-baseline gap-[18px]">
+            <div className="flex items-baseline gap-[18px] sm:flex-[1_1_320px]">
               <span className="min-w-[22px] font-serif text-[15px] text-accent">
                 {fee.num}
               </span>
@@ -37,16 +37,23 @@ export function Costs() {
                 ) : null}
               </div>
             </div>
-            <div className="whitespace-nowrap font-serif text-[clamp(18px,2vw,22px)]">
-              {fee.price}
+            {/* Price stacks the suffix beneath it (mirroring the name/note on the
+                left). On mobile it aligns to the title's start (past the number
+                column); from sm it sits right-aligned on the right. */}
+            <div className="pl-10 sm:pl-0 sm:text-right">
+              <div className="whitespace-nowrap font-serif text-[clamp(18px,2vw,22px)] leading-tight">
+                {fee.price}
+              </div>
               {fee.suffix ? (
-                <span className="font-sans text-[13px] text-ink/55"> {fee.suffix}</span>
+                <div className="mt-[5px] font-sans text-[13px] text-ink/55">
+                  {fee.suffix}
+                </div>
               ) : null}
             </div>
           </div>
         ))}
         <div className="bg-sand px-[clamp(20px,3.5vw,36px)] py-[18px] text-[14px] leading-[1.6] text-ink/70">
-          Want a hostel place? Indicate early in your application — the hostel
+          Want a hostel place? Indicate early in your application - the hostel
           takes only 12 students.
         </div>
       </Reveal>

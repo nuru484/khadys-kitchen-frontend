@@ -36,7 +36,7 @@ export function Hero() {
           </span>
         </h1>
         <p className="mb-[34px] max-w-[46ch] text-[clamp(16px,1.4vw,18px)] leading-[1.65] text-ink/75">
-          Small-batch breads, laminated pastries, and celebration cakes — made
+          Small-batch breads, laminated pastries, and celebration cakes - made
           by hand every morning in Khady&rsquo;s open kitchen, with butter worth
           waking up for.
         </p>
@@ -54,11 +54,13 @@ export function Hero() {
             Learn to bake →
           </Link>
         </div>
-        <div className="mt-12 flex flex-wrap gap-x-8 gap-y-6 border-t border-ink/15 pt-[26px]">
+        <div className="mt-12 flex flex-nowrap items-start gap-x-[clamp(12px,3.5vw,32px)] border-t border-ink/15 pt-[26px]">
           {STATS.map((stat) => (
-            <div key={stat.label}>
-              <div className="font-serif text-[26px]">{stat.value}</div>
-              <div className="mt-1 text-[12.5px] uppercase tracking-[0.08em] text-ink/55">
+            <div key={stat.label} className="min-w-0">
+              <div className="whitespace-nowrap font-serif text-[clamp(17px,4.8vw,26px)] leading-none">
+                {stat.value}
+              </div>
+              <div className="mt-1.5 text-[clamp(9.5px,2.5vw,12.5px)] uppercase tracking-[0.06em] text-ink/55">
                 {stat.label}
               </div>
             </div>
