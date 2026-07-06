@@ -206,11 +206,11 @@ export function ShopBrowser() {
           id="shop-filters"
           className={cn(
             "mt-3 gap-3 lg:mt-0",
-            filtersOpen ? "grid" : "hidden",
+            filtersOpen ? "grid grid-cols-2" : "hidden",
             "lg:flex lg:flex-wrap lg:items-end lg:gap-2.5",
           )}
         >
-          <div className="relative w-full lg:w-auto lg:min-w-[180px] lg:max-w-[340px] lg:flex-[1_1_200px]">
+          <div className="relative col-span-2 w-full lg:col-span-1 lg:w-auto lg:min-w-[180px] lg:max-w-[340px] lg:flex-[1_1_200px]">
             <span
               aria-hidden="true"
               className="pointer-events-none absolute left-[16px] top-1/2 -translate-y-1/2 text-[15px] text-ink/45"
@@ -285,7 +285,7 @@ export function ShopBrowser() {
             <button
               type="button"
               onClick={clearFilters}
-              className="cursor-pointer justify-self-start border-none bg-transparent p-0 font-sans text-[13.5px] font-semibold text-accent underline lg:hidden"
+              className="col-span-2 cursor-pointer justify-self-start border-none bg-transparent p-0 font-sans text-[13.5px] font-semibold text-accent underline lg:hidden"
             >
               Clear all ✕
             </button>
