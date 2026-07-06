@@ -7,10 +7,10 @@ import { Card } from "@/components/admin/ui";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
 import { ErrorState } from "@/components/ui/ErrorState";
-import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 import { Modal } from "@/components/ui/Modal";
 import { TextField } from "@/components/ui/TextField";
 import { RippleLoader } from "@/components/ui/Loader";
+import { useConfirm } from "@/components/admin/use-confirm";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
 import { formatMoney } from "@/lib/format-money";
@@ -34,7 +34,7 @@ export default function StudentDetailPage() {
   const [revokeCert] = useRevokeCertificateMutation();
   const [deleteStudent] = useDeleteStudentMutation();
 
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  const { confirm, dialog } = useConfirm();
   const [certOpen, setCertOpen] = useState(false);
   const [certNumber, setCertNumber] = useState("");
 
@@ -126,7 +126,18 @@ export default function StudentDetailPage() {
             />
           </div>
         </div>
-        <Button variant="danger" onClick={() => setConfirmDelete(true)}>
+        <Button
+          variant="danger"
+          onClick={() =>
+            confirm({
+              title: "Delete this student?",
+              description: "This removes the student record. This can't be undone from here.",
+              confirmText: "Delete student",
+              isDestructive: true,
+              onConfirm: onDelete,
+            })
+          }
+        >
           Delete
         </Button>
       </div>
@@ -134,22 +145,66 @@ export default function StudentDetailPage() {
       {/* Actions */}
       <div className="mb-6 flex flex-wrap gap-2.5">
         {student.status !== "ACTIVE" ? (
-          <Button variant="outline" isLoading={statusBusy} onClick={() => changeStatus("activate")}>
+          <Button
+            variant="outline"
+            isLoading={statusBusy}
+            onClick={() =>
+              confirm({
+                title: "Reactivate this student?",
+                description: "They will be marked active again.",
+                confirmText: "Reactivate",
+                onConfirm: () => changeStatus("activate"),
+              })
+            }
+          >
             Reactivate
           </Button>
         ) : null}
         {student.status === "ACTIVE" ? (
-          <Button variant="outline" isLoading={statusBusy} onClick={() => changeStatus("suspend")}>
+          <Button
+            variant="outline"
+            isLoading={statusBusy}
+            onClick={() =>
+              confirm({
+                title: "Suspend this student?",
+                description: "They will be marked suspended.",
+                confirmText: "Suspend",
+                onConfirm: () => changeStatus("suspend"),
+              })
+            }
+          >
             Suspend
           </Button>
         ) : null}
         {student.status !== "GRADUATED" ? (
-          <Button variant="outline" isLoading={statusBusy} onClick={() => changeStatus("graduate")}>
+          <Button
+            variant="outline"
+            isLoading={statusBusy}
+            onClick={() =>
+              confirm({
+                title: "Graduate this student?",
+                description: "This marks the student as graduated.",
+                confirmText: "Graduate",
+                onConfirm: () => changeStatus("graduate"),
+              })
+            }
+          >
             Graduate
           </Button>
         ) : null}
         {student.certificateIssued ? (
-          <Button variant="outline" onClick={() => run(() => revokeCert(id).unwrap(), "Certificate revoked")}>
+          <Button
+            variant="outline"
+            onClick={() =>
+              confirm({
+                title: "Revoke certificate?",
+                description: "This removes the issued certificate from the record.",
+                confirmText: "Revoke",
+                isDestructive: true,
+                onConfirm: () => run(() => revokeCert(id).unwrap(), "Certificate revoked"),
+              })
+            }
+          >
             Revoke certificate
           </Button>
         ) : (
@@ -235,15 +290,7 @@ export default function StudentDetailPage() {
         </div>
       </Modal>
 
-      <ConfirmationDialog
-        open={confirmDelete}
-        onOpenChange={setConfirmDelete}
-        title="Delete this student?"
-        description="This removes the student record. This can't be undone from here."
-        confirmText="Delete student"
-        isDestructive
-        onConfirm={onDelete}
-      />
+      {dialog}
     </div>
   );
 }

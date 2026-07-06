@@ -7,8 +7,8 @@ import { Card } from "@/components/admin/ui";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
 import { ErrorState } from "@/components/ui/ErrorState";
-import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 import { RippleLoader } from "@/components/ui/Loader";
+import { useConfirm } from "@/components/admin/use-confirm";
 import { ApplicationsTable } from "@/components/admin/applications-table";
 import { StudentsTable } from "@/components/admin/students-table";
 import { notify } from "@/lib/notify";
@@ -27,13 +27,13 @@ export default function TrainingDetailPage() {
   const id = params.id;
   const router = useRouter();
   const [tab, setTab] = useState<"applications" | "students">("applications");
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  const { confirm, dialog } = useConfirm();
 
   const { data: training, isLoading, isError, error, refetch } =
     useGetTrainingByIdQuery(id);
   const [publish, { isLoading: publishing }] = usePublishTrainingMutation();
   const [unpublish, { isLoading: unpublishing }] = useUnpublishTrainingMutation();
-  const [deleteTraining, { isLoading: deleting }] = useDeleteTrainingMutation();
+  const [deleteTraining] = useDeleteTrainingMutation();
 
   if (isLoading) {
     return (
@@ -101,14 +101,43 @@ export default function TrainingDetailPage() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2.5">
+          <Link
+            href={`/admin/classes/${id}/edit`}
+            className="rounded-full border-[1.5px] border-ink/25 px-5 py-2.5 text-[13.5px] font-semibold text-ink no-underline transition-colors hover:border-ink"
+          >
+            Edit
+          </Link>
           <Button
             variant={training.isPublished ? "outline" : "primary"}
             isLoading={publishing || unpublishing}
-            onClick={togglePublish}
+            onClick={() =>
+              confirm({
+                title: training.isPublished
+                  ? "Unpublish this training?"
+                  : "Publish this training?",
+                description: training.isPublished
+                  ? "It will no longer be visible on the website."
+                  : "It will go live on the website for applicants to see and apply.",
+                confirmText: training.isPublished ? "Unpublish" : "Publish",
+                onConfirm: togglePublish,
+              })
+            }
           >
             {training.isPublished ? "Unpublish" : "Publish"}
           </Button>
-          <Button variant="danger" onClick={() => setConfirmDelete(true)}>
+          <Button
+            variant="danger"
+            onClick={() =>
+              confirm({
+                title: "Delete this training?",
+                description:
+                  "This hides the cohort and its data. This can't be undone from here.",
+                confirmText: "Delete training",
+                isDestructive: true,
+                onConfirm: onDelete,
+              })
+            }
+          >
             Delete
           </Button>
         </div>
@@ -177,15 +206,7 @@ export default function TrainingDetailPage() {
         )}
       </div>
 
-      <ConfirmationDialog
-        open={confirmDelete}
-        onOpenChange={setConfirmDelete}
-        title="Delete this training?"
-        description="This hides the cohort and its data. This can't be undone from here."
-        confirmText={deleting ? "Deleting…" : "Delete training"}
-        isDestructive
-        onConfirm={onDelete}
-      />
+      {dialog}
     </div>
   );
 }

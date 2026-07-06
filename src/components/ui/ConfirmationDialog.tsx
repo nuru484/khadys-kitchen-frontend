@@ -75,9 +75,9 @@ export function ConfirmationDialog({
   };
 
   return (
-    <Modal open={open} onClose={() => onOpenChange(false)} labelledBy={titleId}>
+    <Modal open={open} onClose={() => onOpenChange(false)} labelledBy={titleId} centered>
       <span
-        className={cn("mb-4 grid h-[52px] w-[52px] place-items-center rounded-full text-[20px]", styles.iconClass)}
+        className={cn("mx-auto mb-4 grid h-[52px] w-[52px] place-items-center rounded-full text-[20px]", styles.iconClass)}
         aria-hidden="true"
       >
         {styles.glyph}
@@ -100,7 +100,7 @@ export function ConfirmationDialog({
         </label>
       ) : null}
 
-      <div className="flex flex-wrap gap-2.5">
+      <div className="flex flex-wrap justify-center gap-2.5">
         <button
           type="button"
           onClick={confirm}

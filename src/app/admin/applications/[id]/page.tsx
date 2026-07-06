@@ -7,9 +7,9 @@ import { Card } from "@/components/admin/ui";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
 import { ErrorState } from "@/components/ui/ErrorState";
-import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 import { RippleLoader } from "@/components/ui/Loader";
 import { RecordPaymentModal } from "@/components/admin/record-payment-modal";
+import { useConfirm } from "@/components/admin/use-confirm";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
 import { formatMoney } from "@/lib/format-money";
@@ -36,8 +36,7 @@ export default function ApplicationDetailPage() {
   const [remind, { isLoading: reminding }] = useRemindApplicantMutation();
   const [refund] = useRefundPaymentMutation();
 
-  const [pendingStatus, setPendingStatus] = useState<string | null>(null);
-  const [pendingRefund, setPendingRefund] = useState<string | null>(null);
+  const { confirm, dialog } = useConfirm();
   const [recording, setRecording] = useState(false);
 
   const app = data?.data;
@@ -60,27 +59,21 @@ export default function ApplicationDetailPage() {
     );
   }
 
-  const confirmStatus = async () => {
-    if (!pendingStatus) return;
+  const doStatus = async (status: string) => {
     try {
-      await updateStatus({ id, status: pendingStatus }).unwrap();
+      await updateStatus({ id, status }).unwrap();
       notify.success("Status updated");
     } catch (err) {
       notify.error("Couldn't update status", { description: extractApiError(err).message });
-    } finally {
-      setPendingStatus(null);
     }
   };
 
-  const confirmRefund = async () => {
-    if (!pendingRefund) return;
+  const doRefund = async (paymentId: string) => {
     try {
-      await refund({ paymentId: pendingRefund, applicationId: id }).unwrap();
+      await refund({ paymentId, applicationId: id }).unwrap();
       notify.success("Payment reversed");
     } catch (err) {
       notify.error("Couldn't reverse", { description: extractApiError(err).message });
-    } finally {
-      setPendingRefund(null);
     }
   };
 
@@ -131,7 +124,22 @@ export default function ApplicationDetailPage() {
       {/* Status actions */}
       <div className="mb-6 flex flex-wrap gap-2.5">
         {STATUS_ACTIONS.filter((a) => a.status !== app.status).map((a) => (
-          <Button key={a.status} variant={a.variant} onClick={() => setPendingStatus(a.status)}>
+          <Button
+            key={a.status}
+            variant={a.variant}
+            onClick={() =>
+              confirm({
+                title: `${a.label} this applicant?`,
+                description:
+                  a.status === "RECRUITED"
+                    ? "This admits the applicant and creates their student record."
+                    : `This sets the application to ${a.status.toLowerCase()}.`,
+                confirmText: a.label,
+                isDestructive: a.variant === "danger",
+                onConfirm: () => doStatus(a.status),
+              })
+            }
+          >
             {a.label}
           </Button>
         ))}
@@ -188,7 +196,19 @@ export default function ApplicationDetailPage() {
           <h2 className="font-serif text-[19px]">Payments</h2>
           <div className="flex gap-2.5">
             {app.balance > 0 ? (
-              <Button variant="outline" size="sm" isLoading={reminding} onClick={sendReminder}>
+              <Button
+                variant="outline"
+                size="sm"
+                isLoading={reminding}
+                onClick={() =>
+                  confirm({
+                    title: "Send a payment reminder?",
+                    description: `We'll notify ${app.fullName} of their outstanding balance of ${formatMoney(app.balance, app.currency)}.`,
+                    confirmText: "Send reminder",
+                    onConfirm: sendReminder,
+                  })
+                }
+              >
                 Send reminder
               </Button>
             ) : null}
@@ -216,7 +236,16 @@ export default function ApplicationDetailPage() {
                   {p.status === "SUCCESS" ? (
                     <button
                       type="button"
-                      onClick={() => setPendingRefund(p.id)}
+                      onClick={() =>
+                        confirm({
+                          title: "Reverse this payment?",
+                          description:
+                            "Paystack payments are refunded via Paystack; cash/MoMo are marked reversed.",
+                          confirmText: "Reverse payment",
+                          isDestructive: true,
+                          onConfirm: () => doRefund(p.id),
+                        })
+                      }
                       className="text-[13px] font-semibold text-danger"
                     >
                       Reverse
@@ -236,27 +265,7 @@ export default function ApplicationDetailPage() {
         open={recording}
         onClose={() => setRecording(false)}
       />
-      <ConfirmationDialog
-        open={pendingStatus !== null}
-        onOpenChange={(o) => !o && setPendingStatus(null)}
-        title={`Set status to ${pendingStatus ?? ""}?`}
-        description={
-          pendingStatus === "RECRUITED"
-            ? "This admits the applicant and creates their student record."
-            : "This updates the application status."
-        }
-        confirmText="Confirm"
-        onConfirm={confirmStatus}
-      />
-      <ConfirmationDialog
-        open={pendingRefund !== null}
-        onOpenChange={(o) => !o && setPendingRefund(null)}
-        title="Reverse this payment?"
-        description="Paystack payments are refunded via Paystack; cash/MoMo are marked reversed."
-        confirmText="Reverse payment"
-        isDestructive
-        onConfirm={confirmRefund}
-      />
+      {dialog}
     </div>
   );
 }
