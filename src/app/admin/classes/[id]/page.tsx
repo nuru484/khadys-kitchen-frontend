@@ -73,14 +73,25 @@ export default function TrainingDetailPage() {
     }
   };
 
+  // At-a-glance strip near the header (only real fields).
+  const dateRange = training.startDate
+    ? `${formatDate(training.startDate)}${training.endDate ? ` – ${formatDate(training.endDate)}` : ""}`
+    : null;
+  const glance: { label: string; value: string }[] = [];
+  if (dateRange) glance.push({ label: "Runs", value: dateRange });
+  if (training.capacity != null)
+    glance.push({ label: "Places", value: `${String(training.capacity)} seats` });
+  if (training.hostelCapacity != null)
+    glance.push({ label: "Hostel", value: `${String(training.hostelCapacity)} places` });
+  glance.push({
+    label: "Applications",
+    value: training.applicationsOpen ? "Open" : "Closed",
+  });
+
+  // Remaining detail lives in the Overview card.
   const facts: [string, string][] = [
     ["Slug", training.slug],
     ["Currency", training.currency],
-    ["Applications", training.applicationsOpen ? "Open" : "Closed"],
-    ["Capacity", training.capacity != null ? String(training.capacity) : "—"],
-    ["Hostel places", training.hostelCapacity != null ? String(training.hostelCapacity) : "—"],
-    ["Starts", formatDate(training.startDate)],
-    ["Ends", formatDate(training.endDate)],
   ];
 
   return (
@@ -91,6 +102,11 @@ export default function TrainingDetailPage() {
 
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
+          {training.numeral ? (
+            <p className="mb-1 text-[12.5px] font-semibold uppercase tracking-[0.16em] text-accent">
+              Cohort {training.numeral}
+            </p>
+          ) : null}
           <h1 className="font-serif text-[clamp(26px,3.4vw,38px)] font-normal">{training.name}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <StatusBadge status={training.status} />
@@ -98,6 +114,14 @@ export default function TrainingDetailPage() {
               status={training.isPublished ? "PUBLISHED" : "DRAFT"}
               label={training.isPublished ? "Published" : "Unpublished"}
             />
+          </div>
+          <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1.5 text-[13.5px] text-ink/60">
+            {glance.map((f) => (
+              <span key={f.label}>
+                <span className="font-semibold text-ink/80">{f.label}</span>{" "}
+                {f.value}
+              </span>
+            ))}
           </div>
         </div>
         <div className="flex flex-wrap gap-2.5">

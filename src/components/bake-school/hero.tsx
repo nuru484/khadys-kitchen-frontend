@@ -1,5 +1,7 @@
 import Image from "next/image";
 import { Reveal } from "@/components/reveal";
+import { cn } from "@/lib/utils";
+import { formatDate } from "@/lib/format-date";
 import type { ITraining } from "@/types/training.types";
 
 // The hero is the only section with a fallback — it must always render well.
@@ -16,13 +18,48 @@ export function Hero({ training }: { training: ITraining }) {
   const heading = training.heroHeading?.trim();
   // Stats are class data — shown only when the cohort defines them.
   const stats = training.stats;
+  const open = training.applicationsOpen;
+
+  // Concrete cohort facts — each rendered only when the field is set.
+  const dateRange = training.startDate
+    ? `${formatDate(training.startDate)}${training.endDate ? ` – ${formatDate(training.endDate)}` : ""}`
+    : null;
+  const facts: { label: string; value: string }[] = [];
+  if (dateRange) facts.push({ label: "Runs", value: dateRange });
+  if (training.capacity != null)
+    facts.push({ label: "Places", value: `${String(training.capacity)} seats` });
+  if (training.hostelCapacity != null)
+    facts.push({
+      label: "Hostel",
+      value: `${String(training.hostelCapacity)} places`,
+    });
 
   return (
     <section className="mx-auto grid max-w-[1280px] grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] items-center gap-[clamp(32px,5vw,72px)] px-[clamp(20px,5vw,48px)] py-[clamp(48px,7vw,88px)]">
       <div style={{ animation: "kk-rise 0.8s ease both" }}>
-        <p className="mb-[18px] text-[13px] font-semibold uppercase tracking-[0.24em] text-accent">
+        <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.24em] text-accent">
           {eyebrow}
         </p>
+        {/* Cohort identity: number + live application status */}
+        <div className="mb-[22px] flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] font-semibold">
+          {training.numeral ? (
+            <span className="uppercase tracking-[0.16em] text-ink/70">
+              Cohort {training.numeral}
+            </span>
+          ) : null}
+          {training.numeral ? <span className="text-ink/25">·</span> : null}
+          <span className="inline-flex items-center gap-2">
+            <span
+              className={cn(
+                "h-2 w-2 rounded-full",
+                open ? "bg-[#2E6B3F]" : "bg-ink/35",
+              )}
+            />
+            <span className="text-ink/60">
+              {open ? "Applications open" : "Applications closed"}
+            </span>
+          </span>
+        </div>
         {heading ? (
           <h1
             className="mb-6 font-serif text-[clamp(40px,5.4vw,74px)] font-normal leading-[1.05]"
@@ -58,12 +95,33 @@ export function Hero({ training }: { training: ITraining }) {
             </span>
           </h1>
         )}
+        {training.name ? (
+          <p
+            className="mb-4 font-serif text-[clamp(19px,2vw,26px)] font-normal leading-[1.25] text-ink/85"
+            style={{ animation: "kk-fadein .8s .4s both" }}
+          >
+            {training.name}
+          </p>
+        ) : null}
         <p
-          className="mb-9 max-w-[54ch] text-[clamp(16px,1.5vw,19px)] leading-[1.65] text-ink/70"
+          className="mb-8 max-w-[54ch] text-[clamp(16px,1.5vw,19px)] leading-[1.65] text-ink/70"
           style={{ animation: "kk-fadein .8s .5s both" }}
         >
           {subtext}
         </p>
+        {facts.length > 0 ? (
+          <div
+            className="mb-9 flex flex-wrap gap-x-6 gap-y-1.5 text-[14px] text-ink/65"
+            style={{ animation: "kk-fadein .8s .55s both" }}
+          >
+            {facts.map((f) => (
+              <span key={f.label}>
+                <span className="font-semibold text-ink/80">{f.label}</span>{" "}
+                {f.value}
+              </span>
+            ))}
+          </div>
+        ) : null}
         <div
           className="flex flex-wrap items-center gap-x-4 gap-y-3.5"
           style={{ animation: "kk-fadein .8s .6s both" }}
@@ -72,7 +130,7 @@ export function Hero({ training }: { training: ITraining }) {
             href="#apply"
             className="rounded-full bg-accent px-[34px] py-4 text-[15px] font-semibold tracking-[0.06em] text-[#FDFAF3] no-underline transition-colors hover:bg-ink"
           >
-            Start your application
+            {open ? "Start your application" : "Join the waitlist"}
           </a>
           <a
             href="#costs"
