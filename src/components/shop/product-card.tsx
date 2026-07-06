@@ -28,13 +28,15 @@ export function ProductCard({ product }: { product: Product }) {
           <TitlePriceRow
             name={product.name}
             price={listPriceLabel(product)}
-            nameClassName="font-serif text-[22px] font-normal"
+            nameClassName="font-serif text-[22px] font-normal line-clamp-2"
             priceClassName="text-[15.5px] font-semibold text-accent"
           />
-          <p className="flex-1 text-[14.5px] leading-[1.6] text-ink/[0.68]">
+          {/* Fixed two-line block so the card's height is set by the layout, not
+              the copy: short blurbs still reserve the space, long ones truncate. */}
+          <p className="line-clamp-2 min-h-[3.2em] text-[14.5px] leading-[1.6] text-ink/[0.68]">
             {product.shortDesc}
           </p>
-          <span className="mt-1.5 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink">
+          <span className="mt-auto pt-1.5 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink">
             {product.lead} · Order →
           </span>
         </div>
