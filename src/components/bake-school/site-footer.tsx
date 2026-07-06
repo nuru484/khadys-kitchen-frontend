@@ -10,6 +10,7 @@ const HOURS = [
 const FOOTER_LINKS = [
   { label: "The Bakery", href: routes.home },
   { label: "Shop", href: routes.shop },
+  { label: "Track your order", href: routes.shopTrack },
   { label: "Bake School", href: routes.apply },
   { label: "Contact", href: routes.contact },
 ];
