@@ -29,6 +29,18 @@ export const ORDER_ACTIONS: Record<
   CANCELLED: [],
 };
 
+/**
+ * The transitions the current user may take. Cancelling returns stock and is
+ * admin-and-above on the backend, so staff never see it.
+ */
+export const orderActionsFor = (
+  status: OrderStatus,
+  isAdmin: boolean,
+): (typeof ORDER_ACTIONS)[OrderStatus] =>
+  isAdmin
+    ? ORDER_ACTIONS[status]
+    : ORDER_ACTIONS[status].filter((a) => a.action !== "cancel");
+
 export const ORDER_CONFIRM_COPY: Record<
   OrderAction,
   { title: string; description: string }

@@ -9,6 +9,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { RippleLoader } from "@/components/ui/Loader";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
+import { useAuthRole } from "@/hooks/use-auth-role";
 import {
   useDeleteProductMutation,
   useGetProductByIdQuery,
@@ -20,6 +21,7 @@ export default function EditItemPage() {
   const { data, isLoading, isError, error, refetch } =
     useGetProductByIdQuery(id);
   const [deleteProduct] = useDeleteProductMutation();
+  const { isAdmin } = useAuthRole();
   const { confirm, dialog } = useConfirm();
 
   if (isLoading) {
@@ -59,22 +61,24 @@ export default function EditItemPage() {
         <Link href="/admin/items" className="text-[13.5px] font-semibold text-accent">
           ← All items
         </Link>
-        <Button
-          variant="danger"
-          size="sm"
-          onClick={() =>
-            confirm({
-              title: "Delete this product?",
-              description:
-                "Past orders keep their own copy of the name and price. An item that's still on sale can't be deleted — take it off sale first.",
-              confirmText: "Delete product",
-              isDestructive: true,
-              onConfirm: onDelete,
-            })
-          }
-        >
-          Delete
-        </Button>
+        {isAdmin ? (
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() =>
+              confirm({
+                title: "Delete this product?",
+                description:
+                  "Past orders keep their own copy of the name and price. An item that's still on sale can't be deleted — take it off sale first.",
+                confirmText: "Delete product",
+                isDestructive: true,
+                onConfirm: onDelete,
+              })
+            }
+          >
+            Delete
+          </Button>
+        ) : null}
       </div>
       <ProductForm product={product} />
       {dialog}

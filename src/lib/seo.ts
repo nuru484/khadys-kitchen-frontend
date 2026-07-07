@@ -20,6 +20,11 @@ interface PageMetaInput {
   keywords?: string[];
   /** Set false for transactional/no-value pages (e.g. the cart). */
   index?: boolean;
+  /**
+   * Page-specific OG/Twitter image (absolute URL, e.g. a product's Cloudinary
+   * shot). Omit to inherit the site-wide `app/opengraph-image.tsx` card.
+   */
+  image?: string;
 }
 
 export function pageMetadata({
@@ -28,8 +33,12 @@ export function pageMetadata({
   path,
   keywords,
   index = true,
+  image,
 }: PageMetaInput): Metadata {
   const fullTitle = `${title} · ${siteConfig.name}`;
+  const ogImage = image
+    ? { url: image, width: 1200, height: 630, alt: fullTitle }
+    : undefined;
   return {
     title: { absolute: fullTitle },
     description,
@@ -43,11 +52,13 @@ export function pageMetadata({
       siteName: siteConfig.name,
       locale: siteConfig.locale,
       type: "website",
+      ...(ogImage ? { images: [ogImage] } : {}),
     },
     twitter: {
       card: "summary_large_image",
       title: fullTitle,
       description,
+      ...(image ? { images: [image] } : {}),
     },
   };
 }

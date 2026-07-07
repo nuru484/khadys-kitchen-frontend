@@ -2,6 +2,8 @@ export interface AdminNavItem {
   label: string;
   href: string;
   isActive: (pathname: string) => boolean;
+  /** Hidden from STAFF — the backend 403s them on this surface. */
+  adminOnly?: boolean;
 }
 
 /**
@@ -17,15 +19,19 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { label: "Customers", href: "/admin/customers", isActive: (p) => p.startsWith("/admin/customers") },
   { label: "Shop items", href: "/admin/items", isActive: (p) => p.startsWith("/admin/items") },
   { label: "Payments", href: "/admin/payments", isActive: (p) => p.startsWith("/admin/payments") },
-  { label: "Team & roles", href: "/admin/team", isActive: (p) => p.startsWith("/admin/team") },
+  { label: "Team & roles", href: "/admin/team", isActive: (p) => p.startsWith("/admin/team"), adminOnly: true },
   { label: "Audit log", href: "/admin/audit", isActive: (p) => p.startsWith("/admin/audit") },
   { label: "Profile", href: "/admin/profile", isActive: (p) => p.startsWith("/admin/profile") },
   { label: "Security", href: "/admin/security", isActive: (p) => p.startsWith("/admin/security") },
 ];
 
-/** Topbar breadcrumb + title for the current route. */
+/**
+ * Topbar breadcrumb + title for the current route. The dashboard title is a
+ * fallback — AdminShell replaces it with a time-of-day greeting for the
+ * signed-in user.
+ */
 export function routeMeta(pathname: string): { crumb: string; title: string } {
-  if (pathname === "/admin") return { crumb: "Overview", title: "Good morning, Khady" };
+  if (pathname === "/admin") return { crumb: "Overview", title: "Dashboard" };
 
   if (pathname === "/admin/orders") return { crumb: "Operations", title: "All orders" };
   if (pathname.startsWith("/admin/orders/")) return { crumb: "Shop · Orders", title: "Order" };

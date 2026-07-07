@@ -4,13 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Card } from "@/components/admin/ui";
-import { OrderRecordPaymentModal } from "@/components/admin/order-record-payment-modal";
+import { RecordPaymentModal } from "@/components/admin/record-payment-modal";
 import { PageActions } from "@/components/admin/page-actions";
 import { useConfirm } from "@/components/admin/use-confirm";
 import {
-  ORDER_ACTIONS as ACTIONS,
+  orderActionsFor,
   ORDER_CONFIRM_COPY as CONFIRM_COPY,
 } from "@/lib/admin/order-actions";
+import { useAuthRole } from "@/hooks/use-auth-role";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -24,7 +25,7 @@ import {
   useGetOrderPaymentsQuery,
   useSetOrderStatusMutation,
 } from "@/redux/orders/orders-api";
-import { useRefundLedgerPaymentMutation } from "@/redux/payments/payments-api";
+import { useRefundPaymentMutation } from "@/redux/payments/payments-api";
 import type { OrderStatus } from "@/types/order.types";
 
 /** Which lifecycle buttons each status offers (mirrors the backend's
@@ -34,7 +35,8 @@ export default function OrderDetailPage() {
   const { data, isLoading, isError, error, refetch } = useGetOrderByIdQuery(id);
   const { data: pay } = useGetOrderPaymentsQuery(id);
   const [setStatus, { isLoading: statusBusy }] = useSetOrderStatusMutation();
-  const [refund] = useRefundLedgerPaymentMutation();
+  const [refund] = useRefundPaymentMutation();
+  const { isAdmin } = useAuthRole();
 
   const { confirm, dialog } = useConfirm();
   const [recording, setRecording] = useState(false);
@@ -72,7 +74,7 @@ export default function OrderDetailPage() {
 
   const doRefund = async (paymentId: string) => {
     try {
-      await refund({ paymentId }).unwrap();
+      await refund({ paymentId, orderId: id }).unwrap();
       notify.success("Payment reversed");
     } catch (err) {
       notify.error("Couldn't reverse", { description: extractApiError(err).message });
@@ -121,7 +123,7 @@ export default function OrderDetailPage() {
           </div>
         </div>
         <PageActions
-          actions={ACTIONS[order.status].map((a, i) => ({
+          actions={orderActionsFor(order.status, isAdmin).map((a, i) => ({
             label: a.label,
             variant: a.variant,
             isLoading: statusBusy,
@@ -234,7 +236,7 @@ export default function OrderDetailPage() {
                   <span className="text-[13px] text-ink/50">
                     {formatDateTime(p.paidAt ?? null)}
                   </span>
-                  {p.status === "SUCCESS" ? (
+                  {isAdmin && p.status === "SUCCESS" ? (
                     <button
                       type="button"
                       onClick={() =>
@@ -261,8 +263,8 @@ export default function OrderDetailPage() {
         )}
       </Card>
 
-      <OrderRecordPaymentModal
-        orderId={id}
+      <RecordPaymentModal
+        owner={{ kind: "order", id }}
         open={recording}
         onClose={() => setRecording(false)}
       />

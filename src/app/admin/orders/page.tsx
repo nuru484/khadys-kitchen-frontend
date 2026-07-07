@@ -5,11 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Card, Pager } from "@/components/admin/ui";
 import { ActionMenu } from "@/components/admin/action-menu";
 import { useConfirm } from "@/components/admin/use-confirm";
-import { OrderRecordPaymentModal } from "@/components/admin/order-record-payment-modal";
+import { RecordPaymentModal } from "@/components/admin/record-payment-modal";
 import {
-  ORDER_ACTIONS,
+  orderActionsFor,
   ORDER_CONFIRM_COPY,
 } from "@/lib/admin/order-actions";
+import { useAuthRole } from "@/hooks/use-auth-role";
 import { FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
 import { SkeletonCells } from "@/components/admin/table-bits";
 import { WalkInOrderModal } from "@/components/admin/walk-in-order-modal";
@@ -48,6 +49,7 @@ export default function OrdersPage() {
   const [recording, setRecording] = useState(false);
   const [payingOrder, setPayingOrder] = useState<IOrder | null>(null);
   const [setOrderStatus] = useSetOrderStatusMutation();
+  const { isAdmin } = useAuthRole();
   const { confirm, dialog } = useConfirm();
 
   const run = async (fn: () => Promise<unknown>, ok: string) => {
@@ -213,7 +215,7 @@ export default function OrdersPage() {
                                 onClick: () =>
                                   router.push(`/admin/orders/${o.id}`),
                               },
-                              ...ORDER_ACTIONS[o.status].map((a) => ({
+                              ...orderActionsFor(o.status, isAdmin).map((a) => ({
                                 label: a.label,
                                 variant:
                                   a.action === "cancel"
@@ -264,8 +266,8 @@ export default function OrdersPage() {
 
       <WalkInOrderModal open={recording} onClose={() => setRecording(false)} />
       {payingOrder ? (
-        <OrderRecordPaymentModal
-          orderId={payingOrder.id}
+        <RecordPaymentModal
+          owner={{ kind: "order", id: payingOrder.id }}
           open
           onClose={() => setPayingOrder(null)}
         />

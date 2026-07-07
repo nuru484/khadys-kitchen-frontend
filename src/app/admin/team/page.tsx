@@ -352,11 +352,12 @@ export default function TeamPage() {
     target.id !== me.id &&
     (isSuperAdmin || ROLE_RANK[me.role] > ROLE_RANK[target.role]);
 
-  // Mirrors the backend's canAssignRole: grant up to your OWN rank — an admin
-  // can make staff or admins, only a super admin can mint super admins.
+  // Mirrors the backend's canAssignRole: a super admin grants up to their own
+  // rank; everyone else only strictly below — an admin can make staff, and
+  // only a super admin can mint admins or super admins.
   const assignableRoles = isSuperAdmin
     ? [UserRole.STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN]
-    : [UserRole.STAFF, UserRole.ADMIN];
+    : [UserRole.STAFF];
 
   const run = async (fn: () => Promise<unknown>, ok: string) => {
     try {

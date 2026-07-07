@@ -7,7 +7,6 @@ export const metadata = pageMetadata({
   description:
     "The terms for ordering bakes, enrolling in a class, and using the Khady's Kitchen website.",
   path: "/terms",
-  index: false,
 });
 
 const SECTIONS: LegalSection[] = [

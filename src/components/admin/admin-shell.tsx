@@ -6,8 +6,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { ADMIN_NAV_ITEMS, routeMeta } from "@/lib/admin/nav";
+import { ADMIN_NAV_ITEMS, routeMeta, type AdminNavItem } from "@/lib/admin/nav";
 import { useLogoutMutation } from "@/redux/auth/auth-api";
+import { useAuthRole } from "@/hooks/use-auth-role";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import type { IUser } from "@/types/user.types";
 import { UserRole } from "@/types/user.types";
@@ -17,6 +18,27 @@ const ROLE_LABELS: Record<UserRole, string> = {
   [UserRole.ADMIN]: "Administrator",
   [UserRole.STAFF]: "Staff",
 };
+
+/** Time-of-day greeting for the dashboard title, e.g. "Good morning, Ama". */
+function dashboardGreeting(user: IUser | null, now: Date): string {
+  const hour = now.getHours();
+  const timeOfDay =
+    hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
+  const name = user?.firstName.trim();
+  return name ? `Good ${timeOfDay}, ${name}` : `Good ${timeOfDay}`;
+}
+
+/** Today, e.g. "Sat 5 Jul 2026". */
+function formatToday(now: Date): string {
+  return now
+    .toLocaleDateString("en-GB", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    })
+    .replace(",", "");
+}
 
 function accountFor(user: IUser | null) {
   if (!user)
@@ -44,11 +66,13 @@ function Wordmark({ light }: { light?: boolean }) {
 
 function Sidebar({
   pathname,
+  items,
   account,
   onLogout,
   loggingOut,
 }: {
   pathname: string;
+  items: AdminNavItem[];
   account: { name: string; meta: string; initials: string; picture: string | null };
   onLogout: () => void;
   loggingOut: boolean;
@@ -62,7 +86,7 @@ function Sidebar({
         </div>
       </div>
       <nav className="grid flex-1 content-start gap-0.5 overflow-y-auto p-3.5">
-        {ADMIN_NAV_ITEMS.map((n) => {
+        {items.map((n) => {
           const active = n.isActive(pathname);
           return (
             <Link
@@ -125,12 +149,14 @@ function MobileMenu({
   open,
   onClose,
   pathname,
+  items,
   onLogout,
   loggingOut,
 }: {
   open: boolean;
   onClose: () => void;
   pathname: string;
+  items: AdminNavItem[];
   onLogout: () => void;
   loggingOut: boolean;
 }) {
@@ -173,7 +199,7 @@ function MobileMenu({
         </button>
       </div>
       <nav className="grid flex-1 content-start gap-0.5 overflow-y-auto px-[clamp(22px,7vw,48px)] py-6">
-        {ADMIN_NAV_ITEMS.map((n) => {
+        {items.map((n) => {
           const active = n.isActive(pathname);
           return (
             <Link
@@ -219,11 +245,18 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
-  const { crumb, title } = routeMeta(pathname);
+  const { crumb, title: metaTitle } = routeMeta(pathname);
 
   const user = useCurrentUser();
   const account = accountFor(user);
+  const { isAdmin } = useAuthRole();
+  // Staff never see the surfaces the backend 403s them on.
+  const navItems = ADMIN_NAV_ITEMS.filter((n) => !n.adminOnly || isAdmin);
   const [logout, { isLoading: loggingOut }] = useLogoutMutation();
+
+  // AdminShell renders client-side behind RequireAuth, so local time is safe.
+  const now = new Date();
+  const title = pathname === "/admin" ? dashboardGreeting(user, now) : metaTitle;
 
   const onLogout = async () => {
     try {
@@ -238,6 +271,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen bg-cream text-ink">
         <Sidebar
           pathname={pathname}
+          items={navItems}
           account={account}
           onLogout={onLogout}
           loggingOut={loggingOut}
@@ -267,7 +301,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
               </div>
             </div>
             <span className="hidden whitespace-nowrap text-[12.5px] text-ink/55 min-[1000px]:inline">
-              Sat 5 Jul 2026
+              {formatToday(now)}
             </span>
           </header>
 
@@ -275,6 +309,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             open={menuOpen}
             onClose={() => setMenuOpen(false)}
             pathname={pathname}
+            items={navItems}
             onLogout={onLogout}
             loggingOut={loggingOut}
           />

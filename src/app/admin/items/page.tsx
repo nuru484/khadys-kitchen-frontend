@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
 import { formatMoney } from "@/lib/format-money";
+import { useAuthRole } from "@/hooks/use-auth-role";
 import { useTableQuery } from "@/hooks/use-table-query";
 import {
   useGetProductsQuery,
@@ -45,6 +46,7 @@ export default function ItemsPage() {
     });
   const [setAvailability] = useSetProductAvailabilityMutation();
   const [deleteProduct] = useDeleteProductMutation();
+  const { isAdmin } = useAuthRole();
   const { confirm, dialog } = useConfirm();
 
   const rows = data?.data ?? [];
@@ -240,29 +242,33 @@ export default function ItemsPage() {
                               onClick: () =>
                                 router.push(`/admin/items/${p.id}/edit`),
                             },
-                            {
-                              label: "Delete",
-                              variant: "danger" as const,
-                              onClick: () =>
-                                confirm({
-                                  title: "Delete this product?",
-                                  description:
-                                    "Past orders keep their own copy of the name and price. An item that's still on sale can't be deleted — take it off sale first.",
-                                  confirmText: "Delete product",
-                                  isDestructive: true,
-                                  onConfirm: async () => {
-                                    try {
-                                      await deleteProduct(p.id).unwrap();
-                                      notify.success("Product deleted");
-                                    } catch (err) {
-                                      notify.error("Couldn't delete", {
+                            ...(isAdmin
+                              ? [
+                                  {
+                                    label: "Delete",
+                                    variant: "danger" as const,
+                                    onClick: () =>
+                                      confirm({
+                                        title: "Delete this product?",
                                         description:
-                                          extractApiError(err).message,
-                                      });
-                                    }
+                                          "Past orders keep their own copy of the name and price. An item that's still on sale can't be deleted — take it off sale first.",
+                                        confirmText: "Delete product",
+                                        isDestructive: true,
+                                        onConfirm: async () => {
+                                          try {
+                                            await deleteProduct(p.id).unwrap();
+                                            notify.success("Product deleted");
+                                          } catch (err) {
+                                            notify.error("Couldn't delete", {
+                                              description:
+                                                extractApiError(err).message,
+                                            });
+                                          }
+                                        },
+                                      }),
                                   },
-                                }),
-                            },
+                                ]
+                              : []),
                           ]}
                         />
                       </td>

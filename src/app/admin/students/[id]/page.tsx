@@ -14,6 +14,7 @@ import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
 import { formatMoney } from "@/lib/format-money";
 import { formatDate, formatDateTime } from "@/lib/format-date";
+import { useAuthRole } from "@/hooks/use-auth-role";
 import {
   useDeleteStudentMutation,
   useGetStudentByIdQuery,
@@ -29,6 +30,7 @@ export default function StudentDetailPage() {
   const { data: pay } = useGetStudentPaymentsQuery(id);
   const [setStatus, { isLoading: statusBusy }] = useSetStudentStatusMutation();
   const [deleteStudent] = useDeleteStudentMutation();
+  const { isAdmin } = useAuthRole();
 
   const { confirm, dialog } = useConfirm();
 
@@ -158,18 +160,23 @@ export default function StudentDetailPage() {
                   },
                 ]
               : []),
-            {
-              label: "Delete",
-              variant: "danger" as const,
-              onClick: () =>
-                confirm({
-                  title: "Delete this student?",
-                  description: "This removes the student record. This can't be undone from here.",
-                  confirmText: "Delete student",
-                  isDestructive: true,
-                  onConfirm: onDelete,
-                }),
-            },
+            ...(isAdmin
+              ? [
+                  {
+                    label: "Delete",
+                    variant: "danger" as const,
+                    onClick: () =>
+                      confirm({
+                        title: "Delete this student?",
+                        description:
+                          "This removes the student record. This can't be undone from here.",
+                        confirmText: "Delete student",
+                        isDestructive: true,
+                        onConfirm: onDelete,
+                      }),
+                  },
+                ]
+              : []),
           ]}
         />
       </div>

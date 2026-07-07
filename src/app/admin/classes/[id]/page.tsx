@@ -14,6 +14,7 @@ import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
 import { formatMoney } from "@/lib/format-money";
 import { formatDate } from "@/lib/format-date";
+import { useAuthRole } from "@/hooks/use-auth-role";
 import {
   useDeleteTrainingMutation,
   useGetTrainingByIdQuery,
@@ -26,6 +27,7 @@ export default function TrainingDetailPage() {
   const id = params.id;
   const router = useRouter();
   const [tab, setTab] = useState<"applications" | "students">("applications");
+  const { isAdmin } = useAuthRole();
   const { confirm, dialog } = useConfirm();
 
   const { data: training, isLoading, isError, error, refetch } =
@@ -126,21 +128,23 @@ export default function TrainingDetailPage() {
           >
             {training.isPublished ? "Unpublish" : "Publish"}
           </Button>
-          <Button
-            variant="danger"
-            onClick={() =>
-              confirm({
-                title: "Delete this training?",
-                description:
-                  "This hides the cohort and its data. This can't be undone from here.",
-                confirmText: "Delete training",
-                isDestructive: true,
-                onConfirm: onDelete,
-              })
-            }
-          >
-            Delete
-          </Button>
+          {isAdmin ? (
+            <Button
+              variant="danger"
+              onClick={() =>
+                confirm({
+                  title: "Delete this training?",
+                  description:
+                    "This hides the cohort and its data. This can't be undone from here.",
+                  confirmText: "Delete training",
+                  isDestructive: true,
+                  onConfirm: onDelete,
+                })
+              }
+            >
+              Delete
+            </Button>
+          ) : null}
         </div>
       </div>
 

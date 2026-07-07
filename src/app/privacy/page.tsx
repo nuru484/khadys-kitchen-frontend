@@ -7,7 +7,6 @@ export const metadata = pageMetadata({
   description:
     "How Khady's Kitchen collects, uses, and protects the information you share when you order, enrol in a class, or get in touch.",
   path: "/privacy",
-  index: false,
 });
 
 const SECTIONS: LegalSection[] = [

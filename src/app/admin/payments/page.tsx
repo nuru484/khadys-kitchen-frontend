@@ -13,10 +13,11 @@ import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
 import { formatMoney } from "@/lib/format-money";
 import { formatDateTime } from "@/lib/format-date";
+import { useAuthRole } from "@/hooks/use-auth-role";
 import { useTableQuery } from "@/hooks/use-table-query";
 import {
   useGetPaymentsQuery,
-  useRefundLedgerPaymentMutation,
+  useRefundPaymentMutation,
 } from "@/redux/payments/payments-api";
 
 const OWNER_FILTERS = [
@@ -48,7 +49,8 @@ export default function PaymentsPage() {
       status: filters.status !== "all" ? filters.status : undefined,
       method: filters.method !== "all" ? filters.method : undefined,
     });
-  const [refund] = useRefundLedgerPaymentMutation();
+  const [refund] = useRefundPaymentMutation();
+  const { isAdmin } = useAuthRole();
   const { confirm, dialog } = useConfirm();
 
   const rows = data?.data ?? [];
@@ -62,9 +64,17 @@ export default function PaymentsPage() {
   const noDataAtAll =
     !isLoading && !isError && (meta?.total ?? 0) === 0 && !hasActiveFilters;
 
-  const doRefund = async (paymentId: string) => {
+  const doRefund = async (p: {
+    id: string;
+    order: { id: string } | null;
+    application: { id: string } | null;
+  }) => {
     try {
-      await refund({ paymentId }).unwrap();
+      await refund({
+        paymentId: p.id,
+        orderId: p.order?.id,
+        applicationId: p.application?.id,
+      }).unwrap();
       notify.success("Payment reversed");
     } catch (err) {
       notify.error("Couldn't reverse", { description: extractApiError(err).message });
@@ -211,7 +221,7 @@ export default function PaymentsPage() {
                         {formatDateTime(p.paidAt ?? null)}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        {p.status === "SUCCESS" ? (
+                        {isAdmin && p.status === "SUCCESS" ? (
                           <button
                             type="button"
                             onClick={() =>
@@ -221,7 +231,7 @@ export default function PaymentsPage() {
                                   "Paystack payments are refunded via Paystack; cash/MoMo are marked reversed. The owning order or application is re-credited.",
                                 confirmText: "Reverse payment",
                                 isDestructive: true,
-                                onConfirm: () => doRefund(p.id),
+                                onConfirm: () => doRefund(p),
                               })
                             }
                             className="text-[13px] font-semibold text-danger"
