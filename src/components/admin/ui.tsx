@@ -154,7 +154,7 @@ export function StatTile({
   note?: string;
 }) {
   return (
-    <div className="rounded-[18px] border border-ink/10 bg-card px-[22px] py-5">
+    <div className="min-w-0 rounded-[18px] border border-ink/10 bg-card px-[22px] py-5">
       <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink/50">
         {label}
       </div>
@@ -177,7 +177,9 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-[18px] border border-ink/10 bg-card",
+        // min-w-0: a card's intrinsic content (e.g. a dense chart) must never
+        // widen the grids it sits in — grid items default to min-width:auto.
+        "min-w-0 rounded-[18px] border border-ink/10 bg-card",
         className,
       )}
     >

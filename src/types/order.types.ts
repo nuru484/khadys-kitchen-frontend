@@ -83,6 +83,8 @@ export interface IPlaceOrderInput {
 export interface IOrderListQuery {
   page?: number;
   limit?: number;
+  /** Only orders containing a line for this product. */
+  productId?: string;
   status?: string;
   paymentStatus?: string;
   customerId?: string;

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Card } from "@/components/admin/ui";
 import { OrderRecordPaymentModal } from "@/components/admin/order-record-payment-modal";
+import { PageActions } from "@/components/admin/page-actions";
 import { useConfirm } from "@/components/admin/use-confirm";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
@@ -139,8 +140,8 @@ export default function OrderDetailPage() {
       </Link>
 
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="font-serif text-[clamp(26px,3.4vw,36px)] font-normal">
+        <div className="min-w-0">
+          <h1 className="break-words font-serif text-[clamp(26px,3.4vw,36px)] font-normal">
             {order.fullName}
           </h1>
           <div className="mt-1 text-[13.5px] text-ink/55">
@@ -158,26 +159,23 @@ export default function OrderDetailPage() {
             ) : null}
           </div>
         </div>
-        <div className="flex flex-wrap gap-2.5">
-          {ACTIONS[order.status].map((a) => (
-            <Button
-              key={a.action}
-              variant={a.variant}
-              isLoading={statusBusy}
-              onClick={() =>
-                confirm({
-                  title: CONFIRM_COPY[a.action].title,
-                  description: CONFIRM_COPY[a.action].description,
-                  confirmText: a.label,
-                  isDestructive: a.action === "cancel",
-                  onConfirm: () => doAction(a.action),
-                })
-              }
-            >
-              {a.label}
-            </Button>
-          ))}
-        </div>
+        <PageActions
+          actions={ACTIONS[order.status].map((a, i) => ({
+            label: a.label,
+            variant: a.variant,
+            isLoading: statusBusy,
+            // The natural next transition stays visible on phones.
+            primary: i === 0 && a.action !== "cancel",
+            onClick: () =>
+              confirm({
+                title: CONFIRM_COPY[a.action].title,
+                description: CONFIRM_COPY[a.action].description,
+                confirmText: a.label,
+                isDestructive: a.action === "cancel",
+                onConfirm: () => doAction(a.action),
+              }),
+          }))}
+        />
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-[18px]">
@@ -220,7 +218,16 @@ export default function OrderDetailPage() {
             {order.items.map((item) => (
               <div key={item.id} className="flex justify-between gap-4 text-[14px]">
                 <span className="text-ink/70">
-                  {item.name}
+                  {item.productId ? (
+                    <Link
+                      href={`/admin/items/${item.productId}`}
+                      className="text-ink/70 underline decoration-ink/25 underline-offset-2 hover:text-accent"
+                    >
+                      {item.name}
+                    </Link>
+                  ) : (
+                    item.name
+                  )}
                   <span className="text-ink/45"> × {item.quantity}</span>
                 </span>
                 <span className="font-medium">

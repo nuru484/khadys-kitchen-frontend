@@ -3,6 +3,8 @@ import type { IPaginationMeta } from "./training.types";
 /** A Bake School student (an admitted applicant), mirroring the backend toStudentDTO. */
 export interface IStudent {
   id: string;
+  /** The backing application (every student has one) — its page, its ledger. */
+  application?: { id: string; code: string };
   code: string;
   fullName: string;
   phone: string;
