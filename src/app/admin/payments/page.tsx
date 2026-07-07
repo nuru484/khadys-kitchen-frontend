@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Card, Pager } from "@/components/admin/ui";
 import { FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
-import { TableSkeletonRows } from "@/components/admin/table-bits";
+import { SkeletonCells } from "@/components/admin/table-bits";
 import { useConfirm } from "@/components/admin/use-confirm";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -131,9 +131,7 @@ export default function PaymentsPage() {
 
       {isError ? (
         <ErrorState error={error} onRetry={() => void refetch()} />
-      ) : isLoading ? (
-        <TableSkeletonRows />
-      ) : rows.length === 0 ? (
+      ) : !isLoading && rows.length === 0 ? (
         <EmptyState
           title="No matching payments"
           description="Nothing matches your current search or filters — try clearing them."
@@ -143,7 +141,7 @@ export default function PaymentsPage() {
           <Card
             className={cn(
               "overflow-hidden transition-opacity",
-              isFetching && "opacity-60",
+              isFetching && !isLoading && "opacity-60",
             )}
           >
             <div className="overflow-x-auto">
@@ -160,7 +158,10 @@ export default function PaymentsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((p) => (
+                  {isLoading ? (
+                    <SkeletonCells widths={["w-40", "w-32", "w-20", "w-20", "w-20", "w-24", "w-16"]} />
+                  ) : (
+                    rows.map((p) => (
                     <tr
                       key={p.id}
                       className="border-b border-ink/[0.08] last:border-0"
@@ -230,7 +231,8 @@ export default function PaymentsPage() {
                         ) : null}
                       </td>
                     </tr>
-                  ))}
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

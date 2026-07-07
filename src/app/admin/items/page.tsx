@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, Pager } from "@/components/admin/ui";
 import { FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
-import { TableSkeletonRows } from "@/components/admin/table-bits";
+import { SkeletonCells } from "@/components/admin/table-bits";
 import { useConfirm } from "@/components/admin/use-confirm";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -133,9 +133,7 @@ export default function ItemsPage() {
 
       {isError ? (
         <ErrorState error={error} onRetry={() => void refetch()} />
-      ) : isLoading ? (
-        <TableSkeletonRows />
-      ) : rows.length === 0 ? (
+      ) : !isLoading && rows.length === 0 ? (
         <EmptyState
           title="No matching items"
           description="Nothing matches your current search or filters — try clearing them."
@@ -145,7 +143,7 @@ export default function ItemsPage() {
           <Card
             className={cn(
               "overflow-hidden transition-opacity",
-              isFetching && "opacity-60",
+              isFetching && !isLoading && "opacity-60",
             )}
           >
             <div className="overflow-x-auto">
@@ -162,7 +160,10 @@ export default function ItemsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((p) => (
+                  {isLoading ? (
+                    <SkeletonCells widths={["w-44", "w-20", "w-20", "w-24", "w-20", "w-24", "w-6"]} />
+                  ) : (
+                    rows.map((p) => (
                     <tr
                       key={p.id}
                       onClick={() => router.push(`/admin/items/${p.id}`)}
@@ -183,11 +184,11 @@ export default function ItemsPage() {
                               🍞
                             </span>
                           )}
-                          <div>
-                            <div className="text-[15px] font-semibold text-ink">
+                          <div className="min-w-0">
+                            <div title={p.name} className="max-w-[170px] truncate sm:max-w-[260px] text-[15px] font-semibold text-ink">
                               {p.name}
                             </div>
-                            <div className="mt-0.5 text-[12.5px] text-ink/55">
+                            <div className="max-w-[170px] truncate sm:max-w-[260px] mt-0.5 text-[12.5px] text-ink/55">
                               {p.unit}
                             </div>
                           </div>
@@ -226,7 +227,8 @@ export default function ItemsPage() {
                       </td>
                       <td className="px-6 py-3.5 text-right text-ink/40">→</td>
                     </tr>
-                  ))}
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

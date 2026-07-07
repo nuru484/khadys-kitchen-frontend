@@ -2,7 +2,7 @@
 
 import { Card, Pager } from "@/components/admin/ui";
 import { LabeledSelect } from "@/components/admin/filter-bar";
-import { TableSkeletonRows } from "@/components/admin/table-bits";
+import { SkeletonCells } from "@/components/admin/table-bits";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
@@ -111,9 +111,7 @@ export default function AuditPage() {
 
       {isError ? (
         <ErrorState error={error} onRetry={() => void refetch()} />
-      ) : isLoading ? (
-        <TableSkeletonRows />
-      ) : rows.length === 0 ? (
+      ) : !isLoading && rows.length === 0 ? (
         <EmptyState
           title="No matching events"
           description="Nothing matches these filters — try clearing them."
@@ -121,7 +119,7 @@ export default function AuditPage() {
       ) : (
         <>
           <Card
-            className={cn("overflow-hidden transition-opacity", isFetching && "opacity-60")}
+            className={cn("overflow-hidden transition-opacity", isFetching && !isLoading && "opacity-60")}
           >
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
@@ -135,7 +133,10 @@ export default function AuditPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((log) => {
+                  {isLoading ? (
+                    <SkeletonCells widths={["w-32", "w-32", "w-48", "w-24", "w-24"]} />
+                  ) : (
+                    rows.map((log) => {
                     const metaStr =
                       log.metadata && typeof log.metadata === "object"
                         ? JSON.stringify(log.metadata)
@@ -151,10 +152,10 @@ export default function AuditPage() {
                         <td className="px-4 py-3.5 text-[13.5px]">
                           {log.actor ? (
                             <>
-                              <div className="font-medium text-ink">
+                              <div title={log.actor.name} className="max-w-[170px] truncate sm:max-w-[260px] font-medium text-ink">
                                 {log.actor.name}
                               </div>
-                              <div className="text-[12px] text-ink/50">
+                              <div className="max-w-[170px] truncate sm:max-w-[260px] text-[12px] text-ink/50">
                                 {log.actor.email}
                               </div>
                             </>
@@ -189,7 +190,8 @@ export default function AuditPage() {
                         </td>
                       </tr>
                     );
-                  })}
+                    })
+                  )}
                 </tbody>
               </table>
             </div>

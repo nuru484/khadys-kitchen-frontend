@@ -5,7 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, Pager } from "@/components/admin/ui";
 import { FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
-import { TableSkeletonRows } from "@/components/admin/table-bits";
+import { SkeletonCells } from "@/components/admin/table-bits";
+import { ActionMenu } from "@/components/admin/action-menu";
 import { useConfirm } from "@/components/admin/use-confirm";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
@@ -423,9 +424,7 @@ export default function TeamPage() {
 
       {isError ? (
         <ErrorState error={error} onRetry={() => void refetch()} />
-      ) : isLoading ? (
-        <TableSkeletonRows />
-      ) : rows.length === 0 ? (
+      ) : !isLoading && rows.length === 0 ? (
         <EmptyState
           title={hasActiveFilters ? "No matching team members" : "No team members yet"}
           description={
@@ -439,7 +438,7 @@ export default function TeamPage() {
           <Card
             className={cn(
               "overflow-hidden transition-opacity",
-              isFetching && "opacity-60",
+              isFetching && !isLoading && "opacity-60",
             )}
           >
             <div className="overflow-x-auto">
@@ -456,21 +455,29 @@ export default function TeamPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((u) => (
+                  {isLoading ? (
+                    <SkeletonCells widths={["w-40", "w-28", "w-24", "w-20", "w-10", "w-24", "w-8"]} />
+                  ) : (
+                    rows.map((u) => (
                     <tr
                       key={u.id}
                       className="border-b border-ink/[0.08] last:border-0"
                     >
                       <td className="px-6 py-4">
-                        <div className="text-[15px] font-semibold text-ink">
-                          {u.firstName} {u.lastName}
+                        <div
+                          title={`${u.firstName} ${u.lastName}`}
+                          className="flex max-w-[170px] truncate sm:max-w-[260px] items-baseline gap-2 whitespace-nowrap text-[15px] font-semibold text-ink"
+                        >
+                          <span className="truncate">
+                            {u.firstName} {u.lastName}
+                          </span>
                           {me?.id === u.id ? (
-                            <span className="ml-2 text-[12px] font-medium text-ink/45">
+                            <span className="flex-none text-[12px] font-medium text-ink/45">
                               (you)
                             </span>
                           ) : null}
                         </div>
-                        <div className="mt-0.5 text-[12.5px] text-ink/55">{u.email}</div>
+                        <div className="mt-0.5 max-w-[170px] truncate sm:max-w-[260px] text-[12.5px] text-ink/55">{u.email}</div>
                       </td>
                       <td className="whitespace-nowrap px-4 py-4 text-[14px] text-ink/70">
                         {u.phone ?? "—"}
@@ -490,77 +497,61 @@ export default function TeamPage() {
                       <td className="whitespace-nowrap px-4 py-4 text-[13.5px] text-ink/70">
                         {formatDate(u.createdAt)}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 text-right">
                         {canManage(u) ? (
-                          <div className="flex flex-wrap justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setEditing(u)}
-                            >
-                              Edit
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setChangingRole(u)}
-                            >
-                              Role
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                confirm({
-                                  title: u.isActive
-                                    ? "Deactivate this account?"
-                                    : "Reactivate this account?",
-                                  description: u.isActive
-                                    ? "They will be signed out and unable to sign in until reactivated."
-                                    : "They will be able to sign in again.",
-                                  confirmText: u.isActive ? "Deactivate" : "Reactivate",
-                                  isDestructive: u.isActive,
-                                  onConfirm: () =>
-                                    run(
-                                      () =>
-                                        setActive({
-                                          id: u.id,
-                                          active: !u.isActive,
-                                        }).unwrap(),
-                                      u.isActive
-                                        ? "Account deactivated"
-                                        : "Account reactivated",
-                                    ),
-                                })
-                              }
-                            >
-                              {u.isActive ? "Deactivate" : "Reactivate"}
-                            </Button>
-                            <Button
-                              variant="danger"
-                              size="sm"
-                              onClick={() =>
-                                confirm({
-                                  title: "Delete this account?",
-                                  description:
-                                    "They lose access immediately. This can't be undone from here.",
-                                  confirmText: "Delete account",
-                                  isDestructive: true,
-                                  onConfirm: () =>
-                                    run(
-                                      () => deleteUser(u.id).unwrap(),
-                                      "Account deleted",
-                                    ),
-                                })
-                              }
-                            >
-                              Delete
-                            </Button>
-                          </div>
+                          <ActionMenu
+                            items={[
+                              { label: "Edit profile", onClick: () => setEditing(u) },
+                              { label: "Change role", onClick: () => setChangingRole(u) },
+                              {
+                                label: u.isActive ? "Deactivate" : "Reactivate",
+                                onClick: () =>
+                                  confirm({
+                                    title: u.isActive
+                                      ? "Deactivate this account?"
+                                      : "Reactivate this account?",
+                                    description: u.isActive
+                                      ? "They will be signed out and unable to sign in until reactivated."
+                                      : "They will be able to sign in again.",
+                                    confirmText: u.isActive ? "Deactivate" : "Reactivate",
+                                    isDestructive: u.isActive,
+                                    onConfirm: () =>
+                                      run(
+                                        () =>
+                                          setActive({
+                                            id: u.id,
+                                            active: !u.isActive,
+                                          }).unwrap(),
+                                        u.isActive
+                                          ? "Account deactivated"
+                                          : "Account reactivated",
+                                      ),
+                                  }),
+                              },
+                              {
+                                label: "Delete account",
+                                variant: "danger",
+                                onClick: () =>
+                                  confirm({
+                                    title: "Delete this account?",
+                                    description:
+                                      "They lose access immediately. This can't be undone from here.",
+                                    confirmText: "Delete account",
+                                    isDestructive: true,
+                                    onConfirm: () =>
+                                      run(
+                                        () => deleteUser(u.id).unwrap(),
+                                        "Account deleted",
+                                      ),
+                                  }),
+                              },
+                            ]}
+                          />
                         ) : null}
                       </td>
                     </tr>
-                  ))}
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

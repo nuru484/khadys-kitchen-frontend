@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, Pager } from "@/components/admin/ui";
-import { TableSkeletonRows } from "@/components/admin/table-bits";
+import { SkeletonCells } from "@/components/admin/table-bits";
 import { FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -105,9 +105,7 @@ export function ApplicationsTable({
 
       {isError ? (
         <ErrorState error={error} onRetry={() => void refetch()} />
-      ) : isLoading ? (
-        <TableSkeletonRows />
-      ) : rows.length === 0 ? (
+      ) : !isLoading && rows.length === 0 ? (
         <EmptyState
           title="No matching applications"
           description="Nothing matches your current search or filters — try clearing them."
@@ -115,7 +113,10 @@ export function ApplicationsTable({
       ) : (
         <>
           <Card
-            className={cn("overflow-hidden transition-opacity", isFetching && "opacity-60")}
+            className={cn(
+              "overflow-hidden transition-opacity",
+              isFetching && !isLoading && "opacity-60",
+            )}
           >
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
@@ -130,7 +131,12 @@ export function ApplicationsTable({
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((a) => (
+                  {isLoading ? (
+                    <SkeletonCells
+                      widths={["w-40", "w-28", "w-20", "w-20", "w-20", "w-6"]}
+                    />
+                  ) : (
+                    rows.map((a) => (
                     <tr
                       key={a.id}
                       onClick={() => router.push(`/admin/applications/${a.id}`)}
@@ -140,11 +146,12 @@ export function ApplicationsTable({
                         <Link
                           href={`/admin/applications/${a.id}`}
                           onClick={(e) => e.stopPropagation()}
-                          className="text-[15px] font-semibold text-ink no-underline"
+                          title={a.fullName}
+                          className="block max-w-[170px] truncate sm:max-w-[260px] text-[15px] font-semibold text-ink no-underline"
                         >
                           {a.fullName}
                         </Link>
-                        <div className="mt-0.5 text-[12.5px] text-ink/55">
+                        <div className="mt-0.5 max-w-[170px] truncate sm:max-w-[260px] text-[12.5px] text-ink/55">
                           {a.code}
                           {a.email ? ` · ${a.email}` : ""}
                         </div>
@@ -163,7 +170,8 @@ export function ApplicationsTable({
                       </td>
                       <td className="px-6 py-4 text-right text-ink/40">→</td>
                     </tr>
-                  ))}
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

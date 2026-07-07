@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, Pager } from "@/components/admin/ui";
 import { FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
-import { TableSkeletonRows } from "@/components/admin/table-bits";
+import { SkeletonCells } from "@/components/admin/table-bits";
 import { WalkInOrderModal } from "@/components/admin/walk-in-order-modal";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
@@ -33,6 +33,9 @@ const titleCase = (s: string) => s.charAt(0) + s.slice(1).toLowerCase();
 export default function OrdersPage() {
   const router = useRouter();
   const [recording, setRecording] = useState(false);
+  // Deep-linked from an item's "View orders" — narrows the list to orders
+  // containing that product; cleared with its chip.
+  const productId = useSearchParams().get("productId") ?? undefined;
   const { page, search, filters, setSearch, setFilter, setPage, queryParams } =
     useTableQuery({ defaults: DEFAULTS, pageSize: PAGE_SIZE });
 
@@ -40,6 +43,7 @@ export default function OrdersPage() {
     useGetOrdersQuery({
       page,
       limit: PAGE_SIZE,
+      productId,
       search: (queryParams.search as string | undefined) ?? undefined,
       status: filters.status !== "all" ? filters.status : undefined,
       paymentStatus: filters.payment !== "all" ? filters.payment : undefined,
@@ -48,7 +52,9 @@ export default function OrdersPage() {
   const rows = data?.data ?? [];
   const meta = data?.meta;
   const activeCount =
-    (filters.status !== "all" ? 1 : 0) + (filters.payment !== "all" ? 1 : 0);
+    (filters.status !== "all" ? 1 : 0) +
+    (filters.payment !== "all" ? 1 : 0) +
+    (productId ? 1 : 0);
   const hasActiveFilters =
     Boolean(search.trim()) || activeCount > 0 || page > 1;
   // Truly empty (not just filtered to nothing): skip the toolbar entirely.
@@ -78,6 +84,15 @@ export default function OrdersPage() {
         resultLabel={meta ? `${String(meta.total)} total` : undefined}
         action={<Button onClick={() => setRecording(true)}>+ Walk-in order</Button>}
       >
+        {productId ? (
+          <button
+            type="button"
+            onClick={() => router.replace("/admin/orders")}
+            className="inline-flex cursor-pointer items-center gap-1.5 self-center rounded-full bg-accent/10 px-3.5 py-2 text-[12.5px] font-semibold text-accent transition-colors hover:bg-accent/15"
+          >
+            Filtered by item ✕
+          </button>
+        ) : null}
         <LabeledSelect
           label="Status"
           value={filters.status}
@@ -106,9 +121,7 @@ export default function OrdersPage() {
 
       {isError ? (
         <ErrorState error={error} onRetry={() => void refetch()} />
-      ) : isLoading ? (
-        <TableSkeletonRows />
-      ) : rows.length === 0 ? (
+      ) : !isLoading && rows.length === 0 ? (
         <EmptyState
           title="No matching orders"
           description="Nothing matches your current search or filters — try clearing them."
@@ -118,7 +131,7 @@ export default function OrdersPage() {
           <Card
             className={cn(
               "overflow-hidden transition-opacity",
-              isFetching && "opacity-60",
+              isFetching && !isLoading && "opacity-60",
             )}
           >
             <div className="overflow-x-auto">
@@ -135,7 +148,10 @@ export default function OrdersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((o) => {
+                  {isLoading ? (
+                    <SkeletonCells widths={["w-40", "w-12", "w-20", "w-20", "w-24", "w-24", "w-6"]} />
+                  ) : (
+                    rows.map((o) => {
                     const itemCount = o.items.reduce((n, i) => n + i.quantity, 0);
                     return (
                       <tr
@@ -144,10 +160,10 @@ export default function OrdersPage() {
                         className="cursor-pointer border-b border-ink/[0.08] transition-colors last:border-0 hover:bg-accent/[0.05]"
                       >
                         <td className="px-6 py-4">
-                          <div className="text-[15px] font-semibold text-ink">
+                          <div title={o.fullName} className="max-w-[170px] truncate sm:max-w-[260px] text-[15px] font-semibold text-ink">
                             {o.fullName}
                           </div>
-                          <div className="mt-0.5 text-[12.5px] text-ink/55">{o.code}</div>
+                          <div className="max-w-[170px] truncate sm:max-w-[260px] mt-0.5 text-[12.5px] text-ink/55">{o.code}</div>
                         </td>
                         <td className="whitespace-nowrap px-4 py-4 text-[14px] text-ink/70">
                           {itemCount} item{itemCount === 1 ? "" : "s"}
@@ -167,7 +183,8 @@ export default function OrdersPage() {
                         <td className="px-6 py-4 text-right text-ink/40">→</td>
                       </tr>
                     );
-                  })}
+                    })
+                  )}
                 </tbody>
               </table>
             </div>

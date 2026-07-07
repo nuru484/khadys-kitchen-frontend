@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { RippleLoader } from "@/components/ui/Loader";
 import { RecordPaymentModal } from "@/components/admin/record-payment-modal";
+import { PageActions } from "@/components/admin/page-actions";
 import { useConfirm } from "@/components/admin/use-confirm";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
@@ -114,8 +115,8 @@ export default function ApplicationDetailPage() {
       </Link>
 
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="font-serif text-[clamp(26px,3.4vw,36px)] font-normal">{app.fullName}</h1>
+        <div className="min-w-0">
+          <h1 className="break-words font-serif text-[clamp(26px,3.4vw,36px)] font-normal">{app.fullName}</h1>
           <div className="mt-1 text-[13.5px] text-ink/55">
             {app.code}
             {app.training ? (
@@ -128,45 +129,44 @@ export default function ApplicationDetailPage() {
             ) : null}
           </div>
         </div>
-        <div className="flex flex-wrap gap-2.5">
-          {STATUS_ACTIONS.filter((a) => a.status !== app.status).map((a) => (
-            <Button
-              key={a.status}
-              variant={a.variant}
-              onClick={() =>
+        <PageActions
+          actions={[
+            ...STATUS_ACTIONS.filter((a) => a.status !== app.status).map(
+              (a, i) => ({
+                label: a.label,
+                variant: a.variant,
+                // Admit (or the first sensible transition) stays visible on phones.
+                primary: i === 0 && a.variant !== "danger",
+                onClick: () =>
+                  confirm({
+                    title: `${a.label} this applicant?`,
+                    description:
+                      a.status === "RECRUITED"
+                        ? "This admits the applicant and creates their student record."
+                        : a.status === "REJECTED"
+                          ? "This rejects the applicant — any admission is reversed and paid fees refunded."
+                          : `This sets the application to ${a.status.toLowerCase()}.`,
+                    confirmText: a.label,
+                    isDestructive: a.variant === "danger",
+                    onConfirm: () => doStatus(a.status),
+                  }),
+              }),
+            ),
+            {
+              label: "Delete",
+              variant: "danger" as const,
+              onClick: () =>
                 confirm({
-                  title: `${a.label} this applicant?`,
+                  title: "Delete this application?",
                   description:
-                    a.status === "RECRUITED"
-                      ? "This admits the applicant and creates their student record."
-                      : a.status === "REJECTED"
-                        ? "This rejects the applicant — any admission is reversed and paid fees refunded."
-                        : `This sets the application to ${a.status.toLowerCase()}.`,
-                  confirmText: a.label,
-                  isDestructive: a.variant === "danger",
-                  onConfirm: () => doStatus(a.status),
-                })
-              }
-            >
-              {a.label}
-            </Button>
-          ))}
-          <Button
-            variant="danger"
-            onClick={() =>
-              confirm({
-                title: "Delete this application?",
-                description:
-                  "This removes the application. Applicants who have paid or been admitted can't be deleted.",
-                confirmText: "Delete application",
-                isDestructive: true,
-                onConfirm: onDelete,
-              })
-            }
-          >
-            Delete
-          </Button>
-        </div>
+                    "This removes the application. Applicants who have paid or been admitted can't be deleted.",
+                  confirmText: "Delete application",
+                  isDestructive: true,
+                  onConfirm: onDelete,
+                }),
+            },
+          ]}
+        />
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-[18px]">

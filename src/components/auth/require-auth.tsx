@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useSyncExternalStore, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { LoadingScreen } from "@/components/ui/Loader";
 import { useGetMeQuery, useLogoutMutation } from "@/redux/auth/auth-api";
@@ -15,12 +15,25 @@ import { useCurrentUser } from "@/hooks/use-current-user";
  * (which flows through the api-slice's silent refresh on a 401): a valid session
  * resolves and renders the console; an invalid one is cleared and bounced to
  * `/login?from=…`. A persisted user renders optimistically while `/me`
- * revalidates in the background, so a genuine session never flashes a spinner.
+ * revalidates in the background — but only after hydration: the persisted user
+ * lives in localStorage, which the server can't see, so the first client render
+ * must match the server's loading screen or React reports a hydration mismatch.
  */
+
+// Hydration-safe "are we on the client yet" — false on the server and on the
+// first client render, true right after, with no setState-in-effect.
+const emptySubscribe = () => () => {};
+const useHydrated = () =>
+  useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
 export function RequireAuth({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const cachedUser = useCurrentUser();
+  const hydrated = useHydrated();
   const { data, isError } = useGetMeQuery();
   const [logout] = useLogoutMutation();
   const handled = useRef(false);
@@ -46,8 +59,9 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   // null here — we never leak the console to an invalid session.)
   if (isError) return <LoadingScreen />;
 
-  // Verified by /me, or optimistic from a persisted user while the check runs.
-  if (data || cachedUser) return <>{children}</>;
+  // Verified by /me, or optimistic from a persisted user while the check runs
+  // (post-hydration only — see the note above).
+  if (data || (hydrated && cachedUser)) return <>{children}</>;
 
   // First load with no persisted user: wait for /me before revealing anything.
   return <LoadingScreen />;

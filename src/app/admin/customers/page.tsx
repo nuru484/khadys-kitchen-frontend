@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Card, Pager } from "@/components/admin/ui";
 import { FilterBar } from "@/components/admin/filter-bar";
-import { TableSkeletonRows } from "@/components/admin/table-bits";
+import { SkeletonCells } from "@/components/admin/table-bits";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
@@ -58,9 +58,7 @@ export default function CustomersPage() {
 
       {isError ? (
         <ErrorState error={error} onRetry={() => void refetch()} />
-      ) : isLoading ? (
-        <TableSkeletonRows />
-      ) : rows.length === 0 ? (
+      ) : !isLoading && rows.length === 0 ? (
         <EmptyState
           title="No matching customers"
           description="Nothing matches your search — try clearing it."
@@ -70,7 +68,7 @@ export default function CustomersPage() {
           <Card
             className={cn(
               "overflow-hidden transition-opacity",
-              isFetching && "opacity-60",
+              isFetching && !isLoading && "opacity-60",
             )}
           >
             <div className="overflow-x-auto">
@@ -86,17 +84,20 @@ export default function CustomersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((c) => (
+                  {isLoading ? (
+                    <SkeletonCells widths={["w-40", "w-28", "w-12", "w-24", "w-24", "w-6"]} />
+                  ) : (
+                    rows.map((c) => (
                     <tr
                       key={c.id}
                       onClick={() => router.push(`/admin/customers/${c.id}`)}
                       className="cursor-pointer border-b border-ink/[0.08] transition-colors last:border-0 hover:bg-accent/[0.05]"
                     >
                       <td className="px-6 py-4">
-                        <div className="text-[15px] font-semibold text-ink">
+                        <div title={c.fullName} className="max-w-[170px] truncate sm:max-w-[260px] text-[15px] font-semibold text-ink">
                           {c.fullName}
                         </div>
-                        <div className="mt-0.5 text-[12.5px] text-ink/55">
+                        <div className="max-w-[170px] truncate sm:max-w-[260px] mt-0.5 text-[12.5px] text-ink/55">
                           {c.email ?? "No email"}
                         </div>
                       </td>
@@ -114,7 +115,8 @@ export default function CustomersPage() {
                       </td>
                       <td className="px-6 py-4 text-right text-ink/40">→</td>
                     </tr>
-                  ))}
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

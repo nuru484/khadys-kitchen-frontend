@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Card } from "@/components/admin/ui";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { Button } from "@/components/ui/Button";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { RippleLoader } from "@/components/ui/Loader";
+import { PageActions } from "@/components/admin/page-actions";
 import { useConfirm } from "@/components/admin/use-confirm";
 import { EditStudentModal } from "@/components/admin/edit-student-modal";
 import { notify } from "@/lib/notify";
@@ -85,8 +85,8 @@ export default function StudentDetailPage() {
       </Link>
 
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="font-serif text-[clamp(26px,3.4vw,36px)] font-normal">{student.fullName}</h1>
+        <div className="min-w-0">
+          <h1 className="break-words font-serif text-[clamp(26px,3.4vw,36px)] font-normal">{student.fullName}</h1>
           <div className="mt-1 text-[13.5px] text-ink/55">
             {student.code}
             {student.training ? (
@@ -97,75 +97,81 @@ export default function StudentDetailPage() {
                 </Link>
               </>
             ) : null}
+            {student.application ? (
+              <>
+                {" · "}
+                <Link
+                  href={`/admin/applications/${student.application.id}`}
+                  className="font-semibold text-accent"
+                >
+                  Application {student.application.code}
+                </Link>
+              </>
+            ) : null}
           </div>
         </div>
-        <div className="flex flex-wrap gap-2.5">
-          <Button variant="outline" onClick={() => setEditing(true)}>
-            Edit
-          </Button>
-          {student.status !== "ACTIVE" ? (
-            <Button
-              variant="outline"
-              isLoading={statusBusy}
-              onClick={() =>
+        <PageActions
+          actions={[
+            { label: "Edit", primary: true, onClick: () => setEditing(true) },
+            ...(student.status !== "ACTIVE"
+              ? [
+                  {
+                    label: "Reactivate",
+                    isLoading: statusBusy,
+                    onClick: () =>
+                      confirm({
+                        title: "Reactivate this student?",
+                        description: "They will be marked active again.",
+                        confirmText: "Reactivate",
+                        onConfirm: () => changeStatus("activate"),
+                      }),
+                  },
+                ]
+              : []),
+            ...(student.status === "ACTIVE"
+              ? [
+                  {
+                    label: "Suspend",
+                    isLoading: statusBusy,
+                    onClick: () =>
+                      confirm({
+                        title: "Suspend this student?",
+                        description: "They will be marked suspended.",
+                        confirmText: "Suspend",
+                        onConfirm: () => changeStatus("suspend"),
+                      }),
+                  },
+                ]
+              : []),
+            ...(student.status !== "GRADUATED"
+              ? [
+                  {
+                    label: "Graduate",
+                    isLoading: statusBusy,
+                    onClick: () =>
+                      confirm({
+                        title: "Graduate this student?",
+                        description: "This marks the student as graduated.",
+                        confirmText: "Graduate",
+                        onConfirm: () => changeStatus("graduate"),
+                      }),
+                  },
+                ]
+              : []),
+            {
+              label: "Delete",
+              variant: "danger" as const,
+              onClick: () =>
                 confirm({
-                  title: "Reactivate this student?",
-                  description: "They will be marked active again.",
-                  confirmText: "Reactivate",
-                  onConfirm: () => changeStatus("activate"),
-                })
-              }
-            >
-              Reactivate
-            </Button>
-          ) : null}
-          {student.status === "ACTIVE" ? (
-            <Button
-              variant="outline"
-              isLoading={statusBusy}
-              onClick={() =>
-                confirm({
-                  title: "Suspend this student?",
-                  description: "They will be marked suspended.",
-                  confirmText: "Suspend",
-                  onConfirm: () => changeStatus("suspend"),
-                })
-              }
-            >
-              Suspend
-            </Button>
-          ) : null}
-          {student.status !== "GRADUATED" ? (
-            <Button
-              variant="outline"
-              isLoading={statusBusy}
-              onClick={() =>
-                confirm({
-                  title: "Graduate this student?",
-                  description: "This marks the student as graduated.",
-                  confirmText: "Graduate",
-                  onConfirm: () => changeStatus("graduate"),
-                })
-              }
-            >
-              Graduate
-            </Button>
-          ) : null}
-          <Button
-            variant="danger"
-            onClick={() =>
-              confirm({
-                title: "Delete this student?",
-                description: "This removes the student record. This can't be undone from here.",
-                confirmText: "Delete student",
-                isDestructive: true,
-                onConfirm: onDelete,
-              })
-            }
-          >
-            Delete
-          </Button>
-        </div>
+                  title: "Delete this student?",
+                  description: "This removes the student record. This can't be undone from here.",
+                  confirmText: "Delete student",
+                  isDestructive: true,
+                  onConfirm: onDelete,
+                }),
+            },
+          ]}
+        />
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-[18px]">
@@ -190,7 +196,17 @@ export default function StudentDetailPage() {
         </Card>
 
         <Card className="p-[clamp(20px,3vw,28px)]">
-          <h2 className="mb-4 font-serif text-[19px]">Payments</h2>
+          <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
+            <h2 className="font-serif text-[19px]">Payments</h2>
+            {student.application ? (
+              <Link
+                href={`/admin/payments?search=${student.application.code}`}
+                className="whitespace-nowrap text-[13px] font-semibold text-accent no-underline hover:underline"
+              >
+                View in ledger →
+              </Link>
+            ) : null}
+          </div>
           {pay ? (
             <>
               <div className="grid gap-1.5 text-[14px]">

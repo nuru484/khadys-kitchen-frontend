@@ -89,7 +89,7 @@ export function Modal({
         tabIndex={-1}
         style={{ animation: "kk-toastin .25s both" }}
         className={cn(
-          "w-full max-w-[400px] rounded-[22px] bg-card p-7 outline-none",
+          "max-h-[calc(100dvh-32px)] w-full max-w-[400px] overflow-y-auto rounded-[22px] bg-card p-5 outline-none sm:p-7",
           centered && "text-center",
           className,
         )}

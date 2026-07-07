@@ -6,8 +6,8 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Card } from "@/components/admin/ui";
 import { ProductForm } from "@/components/admin/product-form";
+import { PageActions } from "@/components/admin/page-actions";
 import { useConfirm } from "@/components/admin/use-confirm";
-import { Button } from "@/components/ui/Button";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { RippleLoader } from "@/components/ui/Loader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -75,33 +75,35 @@ export default function ItemDetailPage() {
         <Link href="/admin/items" className="text-[13.5px] font-semibold text-accent">
           ← All items
         </Link>
-        <div className="flex gap-2.5">
-          {editing ? (
-            <Button variant="outline" size="sm" onClick={() => setEditing(false)}>
-              Cancel editing
-            </Button>
-          ) : (
-            <Button size="sm" onClick={() => setEditing(true)}>
-              Edit
-            </Button>
-          )}
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() =>
-              confirm({
-                title: "Delete this product?",
-                description:
-                  "Past orders keep their own copy of the name and price. An item that's still on sale can't be deleted — take it off sale first.",
-                confirmText: "Delete product",
-                isDestructive: true,
-                onConfirm: onDelete,
-              })
-            }
-          >
-            Delete
-          </Button>
-        </div>
+        <PageActions
+          actions={[
+            editing
+              ? {
+                  label: "Cancel editing",
+                  primary: true,
+                  onClick: () => setEditing(false),
+                }
+              : {
+                  label: "Edit",
+                  primary: true,
+                  variant: "primary" as const,
+                  onClick: () => setEditing(true),
+                },
+            {
+              label: "Delete",
+              variant: "danger" as const,
+              onClick: () =>
+                confirm({
+                  title: "Delete this product?",
+                  description:
+                    "Past orders keep their own copy of the name and price. An item that's still on sale can't be deleted — take it off sale first.",
+                  confirmText: "Delete product",
+                  isDestructive: true,
+                  onConfirm: onDelete,
+                }),
+            },
+          ]}
+        />
       </div>
 
       {editing ? (
@@ -146,6 +148,12 @@ export default function ItemDetailPage() {
                 {product.description}
               </p>
             ) : null}
+            <Link
+              href={`/admin/orders?productId=${product.id}`}
+              className="mt-4 inline-block border-t border-ink/10 pt-4 text-[13.5px] font-semibold text-accent no-underline hover:underline"
+            >
+              View orders for this item →
+            </Link>
           </Card>
         </div>
       )}

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { RippleLoader } from "@/components/ui/Loader";
 import { Modal } from "@/components/ui/Modal";
+import { PageActions } from "@/components/admin/page-actions";
 import { TextField } from "@/components/ui/TextField";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
@@ -142,9 +143,15 @@ export default function CustomerDetailPage() {
             {customer.email ? ` · ${customer.email}` : ""}
           </div>
         </div>
-        <Button variant="outline" onClick={() => setEditing(true)}>
-          Edit details
-        </Button>
+        <PageActions
+          actions={[
+            {
+              label: "Edit details",
+              primary: true,
+              onClick: () => setEditing(true),
+            },
+          ]}
+        />
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-[18px]">

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, Pager } from "@/components/admin/ui";
-import { TableSkeletonRows } from "@/components/admin/table-bits";
+import { SkeletonCells } from "@/components/admin/table-bits";
 import { FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -84,9 +84,7 @@ export function StudentsTable({
 
       {isError ? (
         <ErrorState error={error} onRetry={() => void refetch()} />
-      ) : isLoading ? (
-        <TableSkeletonRows />
-      ) : rows.length === 0 ? (
+      ) : !isLoading && rows.length === 0 ? (
         <EmptyState
           title="No matching students"
           description="Nothing matches your current search or filters — try clearing them."
@@ -94,7 +92,10 @@ export function StudentsTable({
       ) : (
         <>
           <Card
-            className={cn("overflow-hidden transition-opacity", isFetching && "opacity-60")}
+            className={cn(
+              "overflow-hidden transition-opacity",
+              isFetching && !isLoading && "opacity-60",
+            )}
           >
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
@@ -110,7 +111,16 @@ export function StudentsTable({
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((st) => (
+                  {isLoading ? (
+                    <SkeletonCells
+                      widths={
+                        trainingId
+                          ? ["w-40", "w-28", "w-20", "w-6"]
+                          : ["w-40", "w-28", "w-32", "w-20", "w-6"]
+                      }
+                    />
+                  ) : (
+                    rows.map((st) => (
                     <tr
                       key={st.id}
                       onClick={() => router.push(`/admin/students/${st.id}`)}
@@ -120,18 +130,21 @@ export function StudentsTable({
                         <Link
                           href={`/admin/students/${st.id}`}
                           onClick={(e) => e.stopPropagation()}
-                          className="text-[15px] font-semibold text-ink no-underline"
+                          title={st.fullName}
+                          className="block max-w-[170px] truncate sm:max-w-[260px] text-[15px] font-semibold text-ink no-underline"
                         >
                           {st.fullName}
                         </Link>
-                        <div className="mt-0.5 text-[12.5px] text-ink/55">{st.code}</div>
+                        <div className="mt-0.5 max-w-[170px] truncate sm:max-w-[260px] text-[12.5px] text-ink/55">{st.code}</div>
                       </td>
                       <td className="whitespace-nowrap px-4 py-4 text-[14px] text-ink/70">
                         {st.phone}
                       </td>
                       {!trainingId ? (
                         <td className="whitespace-nowrap px-4 py-4 text-[14px] text-ink/70">
-                          {st.training?.name ?? "—"}
+                          <span title={st.training?.name} className="max-w-[170px] truncate sm:max-w-[260px] block">
+                            {st.training?.name ?? "—"}
+                          </span>
                         </td>
                       ) : null}
                       <td className="px-4 py-4">
@@ -139,7 +152,8 @@ export function StudentsTable({
                       </td>
                       <td className="px-6 py-4 text-right text-ink/40">→</td>
                     </tr>
-                  ))}
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
