@@ -6,7 +6,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { ADMIN_NAV_ITEMS, routeMeta, type AdminNavItem } from "@/lib/admin/nav";
+import {
+  entryIsActive,
+  isNavGroup,
+  navEntriesFor,
+  routeMeta,
+  type AdminNavEntry,
+} from "@/lib/admin/nav";
 import { useLogoutMutation } from "@/redux/auth/auth-api";
 import { useAuthRole } from "@/hooks/use-auth-role";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -72,7 +78,7 @@ function Sidebar({
   loggingOut,
 }: {
   pathname: string;
-  items: AdminNavItem[];
+  items: AdminNavEntry[];
   account: { name: string; meta: string; initials: string; picture: string | null };
   onLogout: () => void;
   loggingOut: boolean;
@@ -86,26 +92,101 @@ function Sidebar({
         </div>
       </div>
       <nav className="grid flex-1 content-start gap-0.5 overflow-y-auto p-3.5">
-        {items.map((n) => {
-          const active = n.isActive(pathname);
-          return (
+        {items.map((entry) =>
+          isNavGroup(entry) ? (
+            <NavGroup key={entry.label} entry={entry} pathname={pathname} />
+          ) : (
             <Link
-              key={n.label}
-              href={n.href}
+              key={entry.label}
+              href={entry.href}
               className={cn(
                 "flex items-center rounded-[12px] px-3.5 py-[9px] text-[14px] font-semibold no-underline transition-colors",
-                active
+                entry.isActive(pathname)
                   ? "bg-cream/10 text-cream"
                   : "text-cream/65 hover:bg-cream/10 hover:text-cream",
               )}
             >
-              {n.label}
+              {entry.label}
             </Link>
-          );
-        })}
+          ),
+        )}
       </nav>
       <AccountMenu account={account} onLogout={onLogout} loggingOut={loggingOut} />
     </aside>
+  );
+}
+
+/**
+ * A collapsible sidebar group (e.g. Trainings → Classes/Applications/Students).
+ * Opens automatically when one of its children is the current route.
+ */
+function NavGroup({
+  entry,
+  pathname,
+}: {
+  entry: Extract<AdminNavEntry, { children: unknown }>;
+  pathname: string;
+}) {
+  const active = entryIsActive(entry, pathname);
+  const [open, setOpen] = useState(active);
+
+  // Navigating into a child (e.g. via a cross-link) re-opens the group —
+  // adjusted during render (React's derive-from-props pattern), not an effect.
+  const [prevActive, setPrevActive] = useState(active);
+  if (active !== prevActive) {
+    setPrevActive(active);
+    if (active) setOpen(true);
+  }
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className={cn(
+          "flex w-full cursor-pointer items-center justify-between rounded-[12px] px-3.5 py-[9px] text-[14px] font-semibold transition-colors",
+          active && !open
+            ? "bg-cream/10 text-cream"
+            : "text-cream/65 hover:bg-cream/10 hover:text-cream",
+        )}
+      >
+        {entry.label}
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+          className={cn(
+            "h-3.5 w-3.5 transition-transform",
+            open && "rotate-180",
+          )}
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+      {open ? (
+        <div className="mt-0.5 grid gap-0.5 border-l border-cream/15 pl-2.5 ml-3.5">
+          {entry.children.map((c) => (
+            <Link
+              key={c.label}
+              href={c.href}
+              className={cn(
+                "flex items-center rounded-[10px] px-3 py-2 text-[13.5px] font-semibold no-underline transition-colors",
+                c.isActive(pathname)
+                  ? "bg-cream/10 text-cream"
+                  : "text-cream/60 hover:bg-cream/10 hover:text-cream",
+              )}
+            >
+              {c.label}
+            </Link>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -147,11 +228,18 @@ function AccountMenu({
   return (
     <div data-account-menu className="relative border-t border-cream/15 px-3.5 py-3.5">
       {open ? (
-        <div className="absolute inset-x-3.5 bottom-full mb-1.5 grid overflow-hidden rounded-[14px] border border-cream/15 bg-ink shadow-[0_-8px_28px_rgba(0,0,0,0.35)]">
+        <div className="absolute inset-x-3.5 bottom-full mb-1.5 grid overflow-hidden rounded-[14px] border border-cream/20 bg-[#3a2b1e] shadow-[0_-8px_28px_rgba(0,0,0,0.45)]">
+          <Link
+            href="/admin/profile"
+            onClick={() => setOpen(false)}
+            className="px-4 py-3 text-[13.5px] font-semibold text-cream/80 no-underline transition-colors hover:bg-cream/10 hover:text-cream"
+          >
+            My profile
+          </Link>
           <Link
             href="/"
             onClick={() => setOpen(false)}
-            className="px-4 py-3 text-[13.5px] font-semibold text-cream/80 no-underline transition-colors hover:bg-cream/10 hover:text-cream"
+            className="border-t border-cream/10 px-4 py-3 text-[13.5px] font-semibold text-cream/80 no-underline transition-colors hover:bg-cream/10 hover:text-cream"
           >
             ← Back to site
           </Link>
@@ -222,7 +310,7 @@ function MobileMenu({
   open: boolean;
   onClose: () => void;
   pathname: string;
-  items: AdminNavItem[];
+  items: AdminNavEntry[];
   onLogout: () => void;
   loggingOut: boolean;
 }) {
@@ -265,24 +353,51 @@ function MobileMenu({
         </button>
       </div>
       <nav className="grid flex-1 content-start gap-0.5 overflow-y-auto px-[clamp(22px,7vw,48px)] py-6">
-        {items.map((n) => {
-          const active = n.isActive(pathname);
-          return (
+        {items.map((entry) =>
+          isNavGroup(entry) ? (
+            <div key={entry.label} className="py-1">
+              <div className="mb-1 text-[11.5px] font-semibold uppercase tracking-[0.18em] text-cream/45">
+                {entry.label}
+              </div>
+              <div className="grid gap-0.5 border-l border-cream/15 pl-4">
+                {entry.children.map((c) => (
+                  <Link
+                    key={c.label}
+                    href={c.href}
+                    onClick={onClose}
+                    className={cn(
+                      "py-0.5 font-serif text-[clamp(19px,5vw,24px)] leading-[1.25] no-underline",
+                      c.isActive(pathname) ? "text-accent-2" : "text-cream",
+                    )}
+                  >
+                    {c.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : (
             <Link
-              key={n.label}
-              href={n.href}
+              key={entry.label}
+              href={entry.href}
               onClick={onClose}
               className={cn(
                 "py-1 font-serif text-[clamp(20px,5.5vw,26px)] leading-[1.25] no-underline",
-                active ? "text-accent-2" : "text-cream",
+                entry.isActive(pathname) ? "text-accent-2" : "text-cream",
               )}
             >
-              {n.label}
+              {entry.label}
             </Link>
-          );
-        })}
+          ),
+        )}
       </nav>
-      <div className="flex items-center justify-between border-t border-cream/15 px-[clamp(22px,7vw,48px)] pb-9 pt-5">
+      <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2 border-t border-cream/15 px-[clamp(22px,7vw,48px)] pb-9 pt-5">
+        <Link
+          href="/admin/profile"
+          onClick={onClose}
+          className="text-[14px] font-semibold text-cream/80 no-underline transition-colors hover:text-cream"
+        >
+          My profile
+        </Link>
         <Link
           href="/"
           onClick={onClose}
@@ -317,7 +432,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const account = accountFor(user);
   const { isAdmin } = useAuthRole();
   // Staff never see the surfaces the backend 403s them on.
-  const navItems = ADMIN_NAV_ITEMS.filter((n) => !n.adminOnly || isAdmin);
+  const navItems = navEntriesFor(isAdmin);
   const [logout, { isLoading: loggingOut }] = useLogoutMutation();
 
   // AdminShell renders client-side behind RequireAuth, so local time is safe.
@@ -375,8 +490,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
               {formatToday(now)}
               <span className="block text-[11.5px] text-ink/40">
                 {now.toLocaleTimeString("en-GB", {
-                  hour: "2-digit",
+                  hour: "numeric",
                   minute: "2-digit",
+                  hour12: true,
                 })}
               </span>
             </span>
