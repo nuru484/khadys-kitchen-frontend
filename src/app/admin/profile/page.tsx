@@ -16,6 +16,7 @@ import { ProfileAvatar } from "@/components/admin/profile-avatar";
 const schema = z.object({
   firstName: z.string().trim().min(1, "Required").max(50),
   lastName: z.string().trim().min(1, "Required").max(50),
+  email: z.email("Enter a valid email").max(255),
   phone: z
     .string()
     .trim()
@@ -65,6 +66,7 @@ export default function ProfilePage() {
     values: {
       firstName: user?.firstName ?? "",
       lastName: user?.lastName ?? "",
+      email: user?.email ?? "",
       phone: user?.phone ?? "",
     },
   });
@@ -81,6 +83,7 @@ export default function ProfilePage() {
         body: {
           firstName: values.firstName,
           lastName: values.lastName,
+          email: values.email,
           phone: values.phone.trim() || null,
         },
         photo: stagedPhoto ?? undefined,
@@ -120,7 +123,7 @@ export default function ProfilePage() {
         </div>
         <p className="mb-5 text-[14px] text-ink/55">
           {editing
-            ? "Update your photo, name and phone. Email and role are managed by the system."
+            ? "Update your photo, name, email and phone. Your role is managed by the system."
             : "Your account details. Click Edit to make changes."}
         </p>
         <div className="mb-6 border-b border-ink/10 pb-6">
@@ -158,7 +161,14 @@ export default function ProfilePage() {
               error={errors.phone?.message}
               {...register("phone")}
             />
-            <TextField label="Email" value={user?.email ?? ""} readOnly />
+            <TextField
+              label="Email"
+              type="email"
+              placeholder="name@example.com"
+              hint="This is your sign-in email."
+              error={errors.email?.message}
+              {...register("email")}
+            />
             <div className="flex justify-end gap-3">
               <Button type="button" variant="outline" onClick={stopEditing}>
                 Cancel

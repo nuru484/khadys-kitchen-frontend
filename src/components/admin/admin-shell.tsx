@@ -321,7 +321,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const [logout, { isLoading: loggingOut }] = useLogoutMutation();
 
   // AdminShell renders client-side behind RequireAuth, so local time is safe.
-  const now = new Date();
+  // A minute-tick keeps the header clock current without chatty re-renders.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const tick = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(tick);
+  }, []);
   const title = pathname === "/admin" ? dashboardGreeting(user, now) : metaTitle;
 
   const onLogout = async () => {
@@ -366,8 +371,14 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 </h1>
               </div>
             </div>
-            <span className="hidden whitespace-nowrap text-[12.5px] text-ink/55 min-[1000px]:inline">
+            <span className="hidden whitespace-nowrap text-right text-[12.5px] leading-tight text-ink/55 min-[1000px]:inline">
               {formatToday(now)}
+              <span className="block text-[11.5px] text-ink/40">
+                {now.toLocaleTimeString("en-GB", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
             </span>
           </header>
 

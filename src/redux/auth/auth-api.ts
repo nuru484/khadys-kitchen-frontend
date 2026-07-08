@@ -64,6 +64,7 @@ export const authApi = apiSlice.injectEndpoints({
         body: {
           firstName?: string;
           lastName?: string;
+          email?: string;
           phone?: string | null;
         };
         photo?: File;
