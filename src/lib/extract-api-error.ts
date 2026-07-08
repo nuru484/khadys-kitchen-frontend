@@ -8,6 +8,8 @@ export interface NormalizedError {
   message: string;
   status?: number | string;
   code?: string;
+  /** Backend correlation id (useful in bug reports). */
+  errorId?: string;
   /** First message per field, e.g. `{ phone: "Enter a full number" }`. */
   fieldErrors?: Record<string, string>;
   hasFieldErrors: boolean;
@@ -47,6 +49,22 @@ export function extractApiError(error: unknown): NormalizedError {
   }
 
   if (isRecord(error)) {
+    // RTK aborts (e.g. a state reset or unmount cancelled the request) aren't
+    // a user-facing failure mode — never surface a bare "Aborted".
+    const name = typeof error.name === "string" ? error.name : undefined;
+    const msg = typeof error.message === "string" ? error.message : undefined;
+    if (
+      name === "AbortError" ||
+      name === "ConditionError" ||
+      msg === "Aborted"
+    ) {
+      return {
+        message: "The request was interrupted. Please try again.",
+        code: "ABORTED",
+        hasFieldErrors: false,
+      };
+    }
+
     // RTK Query network-level errors.
     const rtkStatus = error.status;
     if (rtkStatus === "FETCH_ERROR" || rtkStatus === "TIMEOUT_ERROR" || rtkStatus === "PARSING_ERROR") {
@@ -74,6 +92,17 @@ export function extractApiError(error: unknown): NormalizedError {
         }
         if (Object.keys(fieldErrors).length === 0) fieldErrors = undefined;
       }
+      // Fallback shape: details.fieldErrors as { field: message | message[] }.
+      if (!fieldErrors && details && isRecord(details.fieldErrors)) {
+        fieldErrors = {};
+        for (const [field, messages] of Object.entries(details.fieldErrors)) {
+          if (typeof messages === "string") fieldErrors[field] = messages;
+          else if (Array.isArray(messages) && typeof messages[0] === "string") {
+            fieldErrors[field] = messages[0];
+          }
+        }
+        if (Object.keys(fieldErrors).length === 0) fieldErrors = undefined;
+      }
       const message =
         (typeof data.message === "string" && data.message) ||
         (typeof rtkStatus === "number" ? statusMessage(rtkStatus) : GENERIC);
@@ -81,6 +110,7 @@ export function extractApiError(error: unknown): NormalizedError {
         message,
         status: typeof rtkStatus === "number" ? rtkStatus : undefined,
         code: typeof data.code === "string" ? data.code : undefined,
+        errorId: typeof data.errorId === "string" ? data.errorId : undefined,
         fieldErrors,
         hasFieldErrors: Boolean(fieldErrors),
       };

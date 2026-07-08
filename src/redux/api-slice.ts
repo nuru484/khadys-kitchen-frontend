@@ -21,6 +21,24 @@ const baseQuery = fetchBaseQuery({
   credentials: "include",
 });
 
+/**
+ * Endpoints where a 401 IS the answer, not an expired session: refreshing
+ * can't help (there's no session yet), and the state reset it triggers would
+ * abort the request mid-flight — turning "Invalid credentials" into "Aborted".
+ */
+const NO_REAUTH_URLS = new Set([
+  "auth/login",
+  "auth/refresh-token",
+  "auth/logout",
+  "auth/2fa/verify",
+  "auth/2fa/resend",
+  "auth/forgot-password",
+  "auth/reset-password",
+]);
+
+const requestUrl = (args: string | FetchArgs): string =>
+  typeof args === "string" ? args : args.url;
+
 const baseQueryWithReauth: BaseQueryFn<
   string | FetchArgs,
   unknown,
@@ -28,7 +46,7 @@ const baseQueryWithReauth: BaseQueryFn<
 > = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
 
-  if (result.error?.status === 401) {
+  if (result.error?.status === 401 && !NO_REAUTH_URLS.has(requestUrl(args))) {
     if (!mutex.isLocked()) {
       const release = await mutex.acquire();
       try {
