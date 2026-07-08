@@ -4,7 +4,11 @@ import Link from "next/link";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ButtonLink } from "@/components/ui/Button";
 import { Pager } from "@/components/admin/ui";
-import { DateRangeFields, FilterBar } from "@/components/admin/filter-bar";
+import {
+  DateRangeFields,
+  FilterBar,
+  LabeledSelect,
+} from "@/components/admin/filter-bar";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
@@ -13,7 +17,13 @@ import { useTableQuery } from "@/hooks/use-table-query";
 import { useGetTrainingsQuery } from "@/redux/trainings/trainings-api";
 import type { ITrainingListQuery } from "@/types/training.types";
 
-const DEFAULTS = { from: "", to: "" };
+const DEFAULTS = {
+  published: "all",
+  featured: "all",
+  apps: "all",
+  from: "",
+  to: "",
+};
 const PAGE_SIZE = 12;
 
 export default function ClassesPage() {
@@ -23,12 +33,21 @@ export default function ClassesPage() {
     pageSize: PAGE_SIZE,
   });
 
+  const query: ITrainingListQuery = {
+    ...(queryParams as ITrainingListQuery),
+    published:
+      filters.published === "all" ? undefined : filters.published === "yes",
+    featured: filters.featured === "all" ? undefined : filters.featured === "yes",
+    applicationsOpen: filters.apps === "all" ? undefined : filters.apps === "open",
+  };
   const { data, isLoading, isFetching, isError, error, refetch } =
-    useGetTrainingsQuery(queryParams as ITrainingListQuery);
+    useGetTrainingsQuery(query);
 
   const trainings = data?.data ?? [];
   const meta = data?.meta;
-  const activeCount = (filters.from ? 1 : 0) + (filters.to ? 1 : 0);
+  const activeCount = Object.entries(filters).filter(
+    ([, v]) => v && v !== "all",
+  ).length;
   const hasActiveFilters =
     Boolean(search.trim()) || activeCount > 0 || page > 1;
   // Truly empty (not just filtered to nothing): skip the toolbar entirely.
@@ -60,6 +79,36 @@ export default function ClassesPage() {
           </ButtonLink>
         }
       >
+        <LabeledSelect
+          label="Published"
+          value={filters.published}
+          active={filters.published !== "all"}
+          onChange={(v) => setFilter("published", v)}
+        >
+          <option value="all">All</option>
+          <option value="yes">Published</option>
+          <option value="no">Draft</option>
+        </LabeledSelect>
+        <LabeledSelect
+          label="Featured"
+          value={filters.featured}
+          active={filters.featured !== "all"}
+          onChange={(v) => setFilter("featured", v)}
+        >
+          <option value="all">All</option>
+          <option value="yes">Featured</option>
+          <option value="no">Not featured</option>
+        </LabeledSelect>
+        <LabeledSelect
+          label="Applications"
+          value={filters.apps}
+          active={filters.apps !== "all"}
+          onChange={(v) => setFilter("apps", v)}
+        >
+          <option value="all">All</option>
+          <option value="open">Open</option>
+          <option value="closed">Closed</option>
+        </LabeledSelect>
         <DateRangeFields
           from={filters.from}
           to={filters.to}

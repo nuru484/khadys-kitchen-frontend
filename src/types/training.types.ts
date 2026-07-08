@@ -118,5 +118,6 @@ export interface ITrainingListQuery {
   applicationsOpen?: boolean;
   /** `true` = only home-page-featured classes. */
   featured?: boolean;
+  published?: boolean;
   search?: string;
 }
