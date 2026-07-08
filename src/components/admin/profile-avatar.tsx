@@ -20,6 +20,7 @@ export function ProfileAvatar({
   editable = false,
   preview = null,
   onStage,
+  caption,
 }: {
   user: IUser | null;
   /** When true, clicking the avatar opens the file picker. */
@@ -28,6 +29,10 @@ export function ProfileAvatar({
   preview?: string | null;
   /** Receives the validated staged file. */
   onStage?: (file: File) => void;
+  /** Replaces the default name + hint text beside the avatar. Use when the
+   * surrounding page already shows the name (e.g. an admin viewing a teammate),
+   * to avoid repeating it. */
+  caption?: React.ReactNode;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const zoomTitleId = useId();
@@ -54,8 +59,8 @@ export function ProfileAvatar({
   };
 
   return (
-    <div className="flex items-center gap-5">
-      <div className="relative">
+    <div className="flex items-center gap-4 sm:gap-5">
+      <div className="relative flex-none">
         <button
           type="button"
           onClick={() => editable && inputRef.current?.click()}
@@ -67,7 +72,13 @@ export function ProfileAvatar({
           )}
         >
           {picture ? (
-            <Image src={picture} alt="Profile" fill sizes="92px" className="object-cover" />
+            <Image
+              src={picture}
+              alt="Profile"
+              fill
+              sizes="92px"
+              className="object-cover"
+            />
           ) : (
             <span>{initials}</span>
           )}
@@ -102,28 +113,45 @@ export function ProfileAvatar({
         ) : null}
       </div>
 
-      <div>
-        <div className="text-[15px] font-semibold text-ink">
-          {user ? `${user.firstName} ${user.lastName}` : "—"}
-        </div>
-        {editable ? (
+      <div className="min-w-0">
+        {caption !== undefined ? (
           <>
-            <button
-              type="button"
-              onClick={() => inputRef.current?.click()}
-              className="mt-1 text-[13.5px] font-semibold text-accent"
-            >
-              {picture ? "Change photo" : "Upload a photo"}
-            </button>
-            <p className="mt-1 text-[12px] text-ink/45">
-              JPG, PNG or WebP · max 5MB
-              {preview ? " · uploads when you save" : ""}
-            </p>
+            {caption}
+            {editable ? (
+              <button
+                type="button"
+                onClick={() => inputRef.current?.click()}
+                className="mt-2 block text-[13.5px] font-semibold text-accent"
+              >
+                {picture ? "Change photo" : "Upload a photo"}
+              </button>
+            ) : null}
           </>
         ) : (
-          <p className="mt-1 text-[12px] text-ink/45">
-            Click Edit to change your photo.
-          </p>
+          <>
+            <div className="break-words text-[15px] font-semibold text-ink">
+              {user ? `${user.firstName} ${user.lastName}` : "—"}
+            </div>
+            {editable ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => inputRef.current?.click()}
+                  className="mt-1 text-[13.5px] font-semibold text-accent"
+                >
+                  {picture ? "Change photo" : "Upload a photo"}
+                </button>
+                <p className="mt-1 text-[12px] text-ink/45">
+                  JPG, PNG or WebP · max 5MB
+                  {preview ? " · uploads when you save" : ""}
+                </p>
+              </>
+            ) : (
+              <p className="mt-1 text-[12px] text-ink/45">
+                Click Edit to change your photo.
+              </p>
+            )}
+          </>
         )}
       </div>
 
@@ -155,7 +183,9 @@ export function ProfileAvatar({
               onClick={() => setZoomed((z) => !z)}
               className={cn(
                 "h-full w-full origin-center object-cover transition-transform duration-200",
-                zoomed ? "scale-[1.8] cursor-zoom-out" : "scale-100 cursor-zoom-in",
+                zoomed
+                  ? "scale-[1.8] cursor-zoom-out"
+                  : "scale-100 cursor-zoom-in",
               )}
             />
           </div>

@@ -141,11 +141,13 @@ export default function ProfilePage() {
             <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-[18px]">
               <TextField
                 label="First name"
+                placeholder="e.g. Ama"
                 error={errors.firstName?.message}
                 {...register("firstName")}
               />
               <TextField
                 label="Last name"
+                placeholder="e.g. Mensah"
                 error={errors.lastName?.message}
                 {...register("lastName")}
               />
@@ -170,8 +172,10 @@ export default function ProfilePage() {
           <div className="grid gap-2.5">
             {info.map(([label, value]) => (
               <div key={label} className="flex justify-between gap-4 text-[14px]">
-                <span className="text-ink/55">{label}</span>
-                <span className="font-medium text-ink">{value}</span>
+                <span className="flex-none text-ink/55">{label}</span>
+                <span className="min-w-0 break-all text-right font-medium text-ink">
+                  {value}
+                </span>
               </div>
             ))}
           </div>

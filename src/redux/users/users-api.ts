@@ -22,7 +22,18 @@ export interface ITeamUserUpdateInput {
   lastName?: string;
   email?: string;
   phone?: string | null;
+  /** null clears the existing photo; a new file is sent separately (multipart). */
+  profilePicture?: string | null;
 }
+
+/** A new photo travels WITH the save as multipart (a `payload` JSON part + the
+ * `profilePicture` file the backend expects); without one we send plain JSON. */
+const toMultipart = (body: ITeamUserUpdateInput, photo: File): FormData => {
+  const form = new FormData();
+  form.append("payload", JSON.stringify(body));
+  form.append("profilePicture", photo);
+  return form;
+};
 
 /** Team management (/admin/users) — list, create, edit, role changes and
  * activate/deactivate/delete. Role changes are super-admin only; the backend
@@ -43,6 +54,11 @@ export const usersApi = apiSlice.injectEndpoints({
           : ["Users"],
     }),
 
+    getUserById: builder.query<ITeamUserResponse, string>({
+      query: (id) => ({ url: `admin/users/${id}`, method: "GET" }),
+      providesTags: (_r, _e, id) => [{ type: "User", id }],
+    }),
+
     createUser: builder.mutation<ITeamUserResponse, ITeamUserCreateInput>({
       query: (body) => ({ url: "admin/users", method: "POST", body }),
       invalidatesTags: ["Users"],
@@ -50,12 +66,12 @@ export const usersApi = apiSlice.injectEndpoints({
 
     updateUser: builder.mutation<
       ITeamUserResponse,
-      { id: string; body: ITeamUserUpdateInput }
+      { id: string; body: ITeamUserUpdateInput; photo?: File }
     >({
-      query: ({ id, body }) => ({
+      query: ({ id, body, photo }) => ({
         url: `admin/users/${id}`,
         method: "PATCH",
-        body,
+        body: photo ? toMultipart(body, photo) : body,
       }),
       invalidatesTags: (_r, _e, { id }) => [{ type: "User", id }, "Users"],
     }),
@@ -92,6 +108,7 @@ export const usersApi = apiSlice.injectEndpoints({
 
 export const {
   useGetUsersQuery,
+  useGetUserByIdQuery,
   useCreateUserMutation,
   useUpdateUserMutation,
   useChangeUserRoleMutation,
