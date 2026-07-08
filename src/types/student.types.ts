@@ -17,7 +17,7 @@ export interface IStudent {
   suspendedAt: string | null;
   createdAt: string;
   updatedAt: string;
-  training?: { id: string; name: string; numeral: string | null; slug: string };
+  training?: { id: string; name: string; slug: string };
 }
 
 export interface IStudentListResponse {
