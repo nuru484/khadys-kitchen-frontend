@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { BackLink } from "@/components/admin/back-link";
 import { useParams, useRouter } from "next/navigation";
 import { Card, StatTile } from "@/components/admin/ui";
 import { EditCustomerModal } from "@/components/admin/edit-customer-modal";
@@ -39,9 +39,9 @@ export default function CustomerDetailPage() {
     return (
       <div style={{ animation: "kk-rise .5s both" }}>
         <ErrorState error={error} onRetry={() => void refetch()} />
-        <Link href="/admin/customers" className="mt-3 inline-block font-semibold text-accent">
+        <BackLink href="/admin/customers" className="mb-0 mt-3">
           ← All customers
-        </Link>
+        </BackLink>
       </div>
     );
   }
@@ -50,9 +50,9 @@ export default function CustomerDetailPage() {
 
   return (
     <div style={{ animation: "kk-rise .5s both" }}>
-      <Link href="/admin/customers" className="mb-4 inline-block text-[13.5px] font-semibold text-accent">
+      <BackLink href="/admin/customers">
         ← All customers
-      </Link>
+      </BackLink>
 
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>

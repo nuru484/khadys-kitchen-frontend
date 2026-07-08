@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { BackLink } from "@/components/admin/back-link";
 import { useParams } from "next/navigation";
 import { TrainingForm } from "@/components/admin/training-form";
 import { RippleLoader } from "@/components/ui/Loader";
@@ -23,21 +23,16 @@ export default function EditTrainingPage() {
     return (
       <div style={{ animation: "kk-rise .5s both" }}>
         <ErrorState error={error} onRetry={() => void refetch()} />
-        <Link href="/admin/classes" className="mt-3 inline-block font-semibold text-accent">
+        <BackLink href="/admin/classes" className="mb-0 mt-3">
           ← All trainings
-        </Link>
+        </BackLink>
       </div>
     );
   }
 
   return (
     <div style={{ animation: "kk-rise .5s both" }}>
-      <Link
-        href={`/admin/classes/${id}`}
-        className="mb-4 inline-block text-[13.5px] font-semibold text-accent"
-      >
-        ← Back to training
-      </Link>
+      <BackLink href={`/admin/classes/${id}`}>← Back to training</BackLink>
       <h1 className="mb-6 font-serif text-[26px] font-normal text-ink">
         Edit training
       </h1>

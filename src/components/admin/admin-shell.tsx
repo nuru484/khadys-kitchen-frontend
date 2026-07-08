@@ -13,6 +13,7 @@ import {
   routeMeta,
   type AdminNavEntry,
 } from "@/lib/admin/nav";
+import { useTrackNavHistory } from "@/components/admin/back-link";
 import { useLogoutMutation } from "@/redux/auth/auth-api";
 import { useAuthRole } from "@/hooks/use-auth-role";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -427,6 +428,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const { crumb, title: metaTitle } = routeMeta(pathname);
+
+  // Counts route changes so BackLink knows real history exists (vs deep link).
+  useTrackNavHistory();
 
   const user = useCurrentUser();
   const account = accountFor(user);

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { BackLink } from "@/components/admin/back-link";
 import { useParams } from "next/navigation";
 import { Card } from "@/components/admin/ui";
 import { RecordPaymentModal } from "@/components/admin/record-payment-modal";
@@ -53,12 +54,9 @@ export default function OrderDetailPage() {
     return (
       <div style={{ animation: "kk-rise .5s both" }}>
         <ErrorState error={error} onRetry={() => void refetch()} />
-        <Link
-          href="/admin/orders"
-          className="mt-3 inline-block font-semibold text-accent"
-        >
+        <BackLink href="/admin/orders" className="mt-3">
           ← All orders
-        </Link>
+        </BackLink>
       </div>
     );
   }
@@ -105,12 +103,9 @@ export default function OrderDetailPage() {
 
   return (
     <div style={{ animation: "kk-rise .5s both" }}>
-      <Link
-        href="/admin/orders"
-        className="mb-4 inline-block text-[13.5px] font-semibold text-accent"
-      >
+      <BackLink href="/admin/orders">
         ← All orders
-      </Link>
+      </BackLink>
 
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">

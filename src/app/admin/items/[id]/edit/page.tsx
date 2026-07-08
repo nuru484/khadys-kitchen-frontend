@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { BackLink } from "@/components/admin/back-link";
 import { useParams, useRouter } from "next/navigation";
 import { ProductForm } from "@/components/admin/product-form";
 import { useConfirm } from "@/components/admin/use-confirm";
@@ -35,9 +35,9 @@ export default function EditItemPage() {
     return (
       <div style={{ animation: "kk-rise .5s both" }}>
         <ErrorState error={error} onRetry={() => void refetch()} />
-        <Link href="/admin/items" className="mt-3 inline-block font-semibold text-accent">
+        <BackLink href="/admin/items" className="mb-0 mt-3">
           ← All items
-        </Link>
+        </BackLink>
       </div>
     );
   }
@@ -58,9 +58,9 @@ export default function EditItemPage() {
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <Link href="/admin/items" className="text-[13.5px] font-semibold text-accent">
+        <BackLink href="/admin/items" className="mb-0">
           ← All items
-        </Link>
+        </BackLink>
         {isAdmin ? (
           <Button
             variant="danger"

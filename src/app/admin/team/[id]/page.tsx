@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { BackLink } from "@/components/admin/back-link";
 import { useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -106,12 +107,9 @@ export default function TeamMemberDetailPage() {
     return (
       <div style={{ animation: "kk-rise .5s both" }}>
         <ErrorState error={error} onRetry={() => void refetch()} />
-        <Link
-          href="/admin/team"
-          className="mt-3 inline-block font-semibold text-accent"
-        >
+        <BackLink href="/admin/team" className="mt-3">
           ← Team & roles
-        </Link>
+        </BackLink>
       </div>
     );
   }
@@ -156,12 +154,9 @@ export default function TeamMemberDetailPage() {
 
   return (
     <div style={{ animation: "kk-rise .5s both" }} className="max-w-[640px]">
-      <Link
-        href="/admin/team"
-        className="mb-4 inline-block text-[13.5px] font-semibold text-accent"
-      >
+      <BackLink href="/admin/team">
         ← Team & roles
-      </Link>
+      </BackLink>
 
       <Card className="p-[clamp(20px,3vw,28px)]">
         <div className="mb-1 flex flex-wrap items-center justify-between gap-3">

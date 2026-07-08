@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BackLink } from "@/components/admin/back-link";
 import { useParams } from "next/navigation";
 import { Card } from "@/components/admin/ui";
 import { useConfirm } from "@/components/admin/use-confirm";
@@ -55,12 +56,9 @@ export default function PaymentDetailPage() {
     return (
       <div style={{ animation: "kk-rise .5s both" }}>
         <ErrorState error={error} onRetry={() => void refetch()} />
-        <Link
-          href="/admin/payments"
-          className="mt-3 inline-block font-semibold text-accent"
-        >
+        <BackLink href="/admin/payments" className="mt-3">
           ← All payments
-        </Link>
+        </BackLink>
       </div>
     );
   }
@@ -82,12 +80,9 @@ export default function PaymentDetailPage() {
 
   return (
     <div style={{ animation: "kk-rise .5s both" }} className="max-w-[640px]">
-      <Link
-        href="/admin/payments"
-        className="mb-4 inline-block text-[13.5px] font-semibold text-accent"
-      >
+      <BackLink href="/admin/payments">
         ← All payments
-      </Link>
+      </BackLink>
 
       <div className="mb-5 min-w-0">
         <h1 className="font-serif text-[clamp(26px,3.4vw,36px)] font-normal">

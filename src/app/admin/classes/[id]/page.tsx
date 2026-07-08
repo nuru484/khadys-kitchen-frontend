@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { BackLink } from "@/components/admin/back-link";
 import { useParams, useRouter } from "next/navigation";
 import { Card } from "@/components/admin/ui";
 import { PageActions } from "@/components/admin/page-actions";
@@ -57,9 +57,9 @@ export default function TrainingDetailPage() {
     return (
       <div style={{ animation: "kk-rise .5s both" }}>
         <ErrorState error={error} onRetry={() => void refetch()} />
-        <Link href="/admin/classes" className="mt-3 inline-block font-semibold text-accent">
+        <BackLink href="/admin/classes" className="mb-0 mt-3">
           ← All trainings
-        </Link>
+        </BackLink>
       </div>
     );
   }
@@ -104,9 +104,9 @@ export default function TrainingDetailPage() {
 
   return (
     <div style={{ animation: "kk-rise .5s both" }}>
-      <Link href="/admin/classes" className="mb-4 inline-block text-[13.5px] font-semibold text-accent">
+      <BackLink href="/admin/classes">
         ← All trainings
-      </Link>
+      </BackLink>
 
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <h1 className="font-serif text-[clamp(26px,3.4vw,38px)] font-normal">{training.name}</h1>
