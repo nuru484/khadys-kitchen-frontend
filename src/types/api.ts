@@ -26,6 +26,7 @@ export const apiSliceTags = [
   "Customer",
   "Customers",
   "DashboardStats",
+  "About",
 ] as const;
 
 export type ApiTag = (typeof apiSliceTags)[number];
