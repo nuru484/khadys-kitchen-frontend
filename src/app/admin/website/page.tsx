@@ -155,12 +155,9 @@ export default function WebsitePage() {
           </div>
 
           {!editing ? (
-            <div className="grid gap-3">
+            <div className="grid gap-4">
               {preview.map(([label, value]) => (
-                <div
-                  key={label}
-                  className="grid gap-0.5 text-[14px] sm:grid-cols-[150px_1fr] sm:items-baseline sm:gap-4"
-                >
+                <div key={label} className="grid gap-0.5 text-[14px]">
                   <span className={labelCls}>{label}</span>
                   <span className="whitespace-pre-line font-medium text-ink">
                     {value ?? (
@@ -171,7 +168,7 @@ export default function WebsitePage() {
                   </span>
                 </div>
               ))}
-              <div className="grid gap-0.5 sm:grid-cols-[150px_1fr] sm:items-start sm:gap-4">
+              <div className="grid gap-0.5">
                 <span className={labelCls}>Section photo</span>
                 {about?.storyImage ? (
                   // eslint-disable-next-line @next/next/no-img-element
