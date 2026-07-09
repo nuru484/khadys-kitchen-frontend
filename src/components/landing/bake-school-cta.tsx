@@ -13,7 +13,7 @@ export function BakeSchoolCta() {
     <section className="mx-auto max-w-[1280px] px-[clamp(20px,5vw,48px)] py-[clamp(48px,7vw,96px)]">
       <Reveal className="relative overflow-hidden rounded-[28px] bg-ink text-cream">
         <Image
-          src="/trainings-cta-backdrop.avif"
+          src="/trainings-cta-backdrop.png"
           alt=""
           aria-hidden="true"
           fill
