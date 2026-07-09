@@ -94,7 +94,7 @@ const jsonLd = {
         closes: "14:00",
       },
     ],
-    sameAs: [siteConfig.instagram],
+    sameAs: Object.values(siteConfig.socials),
   },
   website: {
     "@context": "https://schema.org",
