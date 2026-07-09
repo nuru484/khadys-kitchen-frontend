@@ -49,8 +49,11 @@ export function FileUploadField({
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
+  // Once the user removes the asset, stop falling back to currentUrl — the
+  // preview must reflect the pending "cleared" state, not the saved one.
+  const [cleared, setCleared] = useState(false);
 
-  const shownUrl = previewUrl || (file ? "" : (currentUrl ?? ""));
+  const shownUrl = previewUrl || (file || cleared ? "" : (currentUrl ?? ""));
   const hasAsset = Boolean(file || shownUrl);
 
   const revoke = () => {
@@ -77,6 +80,7 @@ export function FileUploadField({
     }
     revoke();
     setFile(chosen);
+    setCleared(false);
     setPreviewUrl(kind === "image" ? URL.createObjectURL(chosen) : "");
     if (inputRef.current) inputRef.current.value = "";
     onChange({ cleared: false, file: chosen });
@@ -85,6 +89,7 @@ export function FileUploadField({
   const remove = () => {
     revoke();
     setFile(null);
+    setCleared(true);
     setPreviewUrl("");
     if (inputRef.current) inputRef.current.value = "";
     // Cleared: staged file dropped AND any existing saved asset removed.

@@ -99,8 +99,9 @@ export function ProductForm({ product }: { product?: IProduct }) {
     try {
       const payload: IProductInput = {
         ...toPayload(v),
-        // undefined = keep, null = clear; a staged file overwrites on upload.
-        image: photo.cleared ? null : (product?.image ?? undefined),
+        // The backend never accepts an image URL from the client: a staged
+        // file overwrites on upload, and this flag clears the saved photo.
+        removeImage: photo.cleared || undefined,
       };
       const file = photo.file ?? undefined;
       if (product) {

@@ -56,7 +56,11 @@ export interface IProductInput {
   price: number;
   unit?: string;
   leadTimeDays?: number;
-  image?: string | null;
+  /**
+   * Clears the existing photo on update. The backend never accepts an image
+   * URL from the client — a new photo travels only as the multipart file.
+   */
+  removeImage?: boolean;
   isAvailable?: boolean;
   isFeatured?: boolean;
   stock?: number | null;
