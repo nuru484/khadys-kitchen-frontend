@@ -2,8 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { routes } from "@/lib/routes";
-import { MobileNav } from "@/components/bake-school/mobile-nav";
-import { AnnouncementBar } from "@/components/bake-school/announcement-bar";
+import { MobileNav } from "@/components/layout/mobile-nav";
+import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { cn } from "@/lib/utils";
 
 export interface NavLink {

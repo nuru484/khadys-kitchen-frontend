@@ -1,5 +1,5 @@
-import { SiteHeader } from "@/components/bake-school/site-header";
-import { SiteFooter } from "@/components/bake-school/site-footer";
+import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { ContactHero } from "@/components/contact/contact-hero";
 import { ContactChannels } from "@/components/contact/contact-channels";
 import { ContactForm } from "@/components/contact/contact-form";

@@ -1,5 +1,5 @@
-import { SiteHeader } from "@/components/bake-school/site-header";
-import { SiteFooter } from "@/components/bake-school/site-footer";
+import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { CartButton } from "@/components/shop/cart-button";
 import { CartProvider } from "@/lib/cart-store";
 import { routes } from "@/lib/routes";

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { SiteHeader } from "@/components/bake-school/site-header";
-import { SiteFooter } from "@/components/bake-school/site-footer";
+import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { ApplicationStatus } from "@/components/trainings/application-status";
 import { TrainingDetail } from "@/components/trainings/training-detail";
 import { EmptyState } from "@/components/ui/EmptyState";

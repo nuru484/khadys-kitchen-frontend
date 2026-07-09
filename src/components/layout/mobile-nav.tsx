@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import type { NavLink } from "@/components/bake-school/site-header";
+import type { NavLink } from "@/components/layout/site-header";
 
 interface MobileNavProps {
   navLinks: NavLink[];
