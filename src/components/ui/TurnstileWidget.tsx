@@ -24,6 +24,7 @@ interface TurnstileApi {
       "expired-callback"?: () => void;
       "error-callback"?: () => void;
       theme?: "light" | "dark" | "auto";
+      size?: "normal" | "flexible" | "compact";
     },
   ) => string;
   reset: (id: string) => void;
@@ -57,6 +58,10 @@ export function TurnstileWidget(props: TurnstileWidgetProps) {
   return <TurnstileInner {...props} siteKey={siteKey} />;
 }
 
+/** The widget's fixed rendered size (normal/flexible have a 300px minimum). */
+const WIDGET_MIN_WIDTH = 300;
+const WIDGET_HEIGHT = 65;
+
 function TurnstileInner({
   onVerify,
   resetSignal = 0,
@@ -65,6 +70,10 @@ function TurnstileInner({
 }: TurnstileWidgetProps & { siteKey: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetId = useRef<string | null>(null);
+  // On containers narrower than the widget's 300px minimum (fold-size screens)
+  // the rectangular bar is scaled down to fit instead of swapping to the
+  // square compact variant or overflowing the layout.
+  const [scale, setScale] = useState(1);
   const [scriptReady, setScriptReady] = useState(
     () => typeof window !== "undefined" && Boolean(window.turnstile),
   );
@@ -80,9 +89,14 @@ function TurnstileInner({
     if (!window.turnstile || !containerRef.current || widgetId.current !== null) {
       return;
     }
+    const width = containerRef.current.parentElement?.offsetWidth ?? 0;
+    if (width > 0 && width < WIDGET_MIN_WIDTH) {
+      setScale(width / WIDGET_MIN_WIDTH);
+    }
     widgetId.current = window.turnstile.render(containerRef.current, {
       sitekey: siteKey,
       theme: "auto",
+      size: "flexible",
       callback: (token) => onVerifyRef.current(token),
       "expired-callback": () => onVerifyRef.current(""),
       "error-callback": () => onVerifyRef.current(""),
@@ -114,7 +128,27 @@ function TurnstileInner({
         strategy="afterInteractive"
         onReady={() => setScriptReady(true)}
       />
-      <div ref={containerRef} className={className} />
+      <div
+        className={className}
+        style={
+          scale < 1
+            ? { height: WIDGET_HEIGHT * scale, overflow: "hidden" }
+            : undefined
+        }
+      >
+        <div
+          ref={containerRef}
+          style={
+            scale < 1
+              ? {
+                  transform: `scale(${scale})`,
+                  transformOrigin: "top left",
+                  width: WIDGET_MIN_WIDTH,
+                }
+              : undefined
+          }
+        />
+      </div>
     </>
   );
 }
