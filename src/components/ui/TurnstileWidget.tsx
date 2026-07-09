@@ -68,6 +68,7 @@ function TurnstileInner({
   className,
   siteKey,
 }: TurnstileWidgetProps & { siteKey: string }) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetId = useRef<string | null>(null);
   // On containers narrower than the widget's 300px minimum (fold-size screens)
@@ -85,18 +86,33 @@ function TurnstileInner({
     onVerifyRef.current = onVerify;
   }, [onVerify]);
 
+  // Track the wrapper's real width (it is overflow-hidden, so the 300px iframe
+  // can never inflate it or its grid column) and derive the scale from it —
+  // measured continuously, not once, so late layout or fold/rotate can't
+  // leave the widget overflowing.
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) return;
+    const measure = () => {
+      const width = el.offsetWidth;
+      setScale(width > 0 && width < WIDGET_MIN_WIDTH ? width / WIDGET_MIN_WIDTH : 1);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   const render = useCallback(() => {
     if (!window.turnstile || !containerRef.current || widgetId.current !== null) {
       return;
     }
-    const width = containerRef.current.parentElement?.offsetWidth ?? 0;
-    if (width > 0 && width < WIDGET_MIN_WIDTH) {
-      setScale(width / WIDGET_MIN_WIDTH);
-    }
+    // "normal" (fixed 300×65) rather than "flexible": the bar shouldn't
+    // stretch across the whole card on tablet/desktop form widths.
     widgetId.current = window.turnstile.render(containerRef.current, {
       sitekey: siteKey,
       theme: "auto",
-      size: "flexible",
+      size: "normal",
       callback: (token) => onVerifyRef.current(token),
       "expired-callback": () => onVerifyRef.current(""),
       "error-callback": () => onVerifyRef.current(""),
@@ -128,13 +144,16 @@ function TurnstileInner({
         strategy="afterInteractive"
         onReady={() => setScriptReady(true)}
       />
+      {/* Always overflow-hidden: without it the 300px iframe sets the grid
+          column's min-content width and forces horizontal overflow on screens
+          narrower than the widget (the scale can't help if the column has
+          already been inflated by the time it's measured). */}
       <div
-        className={className}
-        style={
-          scale < 1
-            ? { height: WIDGET_HEIGHT * scale, overflow: "hidden" }
-            : undefined
+        ref={wrapperRef}
+        className={
+          className ? `${className} max-w-full overflow-hidden` : "max-w-full overflow-hidden"
         }
+        style={scale < 1 ? { height: WIDGET_HEIGHT * scale } : undefined}
       >
         <div
           ref={containerRef}
