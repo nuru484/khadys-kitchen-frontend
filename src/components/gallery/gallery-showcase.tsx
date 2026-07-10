@@ -104,7 +104,7 @@ export function GalleryShowcase({
     return (
       <div aria-busy="true">
         <div className="hidden md:block">
-          <Skeleton className="aspect-[16/9] max-h-[600px] w-full rounded-[22px]" />
+          <Skeleton className="aspect-[16/9] max-h-[540px] w-full rounded-[22px]" />
           <div className="mt-4 flex items-center gap-3">
             <Skeleton className="h-[46px] w-[46px] rounded-full" />
             <div className="flex flex-1 gap-2.5 overflow-hidden">
@@ -151,7 +151,7 @@ export function GalleryShowcase({
             filmstrip below stays on screen with it. */}
         <div
           aria-live={paused ? "polite" : "off"}
-          className="relative aspect-[16/9] max-h-[600px] w-full overflow-hidden rounded-[22px] border border-ink/10 bg-oat"
+          className="relative aspect-[16/9] max-h-[540px] w-full overflow-hidden rounded-[22px] border border-ink/10 bg-oat"
         >
           {active ? (
             <Image
