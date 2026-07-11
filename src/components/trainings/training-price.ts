@@ -1,17 +1,81 @@
 import { formatMoney } from "@/lib/format-money";
-import type { ITraining } from "@/types/training.types";
+import type { IFeeItem, ITraining } from "@/types/training.types";
 
 /**
- * "From GHS X" entry price for a class — the cheapest required fee item with a
- * real amount (a class can be fee-less, e.g. a free taster; then there is no
- * price to show). Cards, the detail hero, and the sticky apply bar all share it.
+ * How a fee item is charged (mirrors the backend `computeApplicableFees`):
+ * - standalone + required (non-hostel): always part of the bill;
+ * - standalone + optional (or HOSTEL kind): an add-on the applicant ticks;
+ * - items sharing a `choiceGroup`: mutually exclusive price variants — the
+ *   applicant picks exactly one, the amounts are NEVER summed.
+ */
+export interface FeeChoiceGroup {
+  key: string;
+  items: IFeeItem[];
+  /** True when the group must have a pick (it contains a required item). */
+  mandatory: boolean;
+}
+
+export interface SplitFees {
+  /** Always charged, in position order. */
+  requiredItems: IFeeItem[];
+  /** Pick-one variant groups, ordered by their first item's position. */
+  choiceGroups: FeeChoiceGroup[];
+  /** Tick-to-add extras (incl. hostel), in position order. */
+  optionalItems: IFeeItem[];
+}
+
+export const isAddOn = (item: IFeeItem): boolean =>
+  !item.required || item.kind === "HOSTEL";
+
+export function splitFeeItems(training: ITraining): SplitFees {
+  const items = [...(training.feeItems ?? [])].sort(
+    (a, b) => a.position - b.position,
+  );
+  const grouped = new Map<string, IFeeItem[]>();
+  const requiredItems: IFeeItem[] = [];
+  const optionalItems: IFeeItem[] = [];
+  for (const item of items) {
+    const group = item.choiceGroup ?? null;
+    if (group) {
+      grouped.set(group, [...(grouped.get(group) ?? []), item]);
+    } else if (isAddOn(item)) {
+      optionalItems.push(item);
+    } else {
+      requiredItems.push(item);
+    }
+  }
+  const choiceGroups = [...grouped.entries()].map(([key, members]) => ({
+    items: members,
+    key,
+    mandatory: members.some((m) => m.required),
+  }));
+  return { choiceGroups, optionalItems, requiredItems };
+}
+
+/** The formatted price of one item — priceLabel wins over the amount. */
+export function itemPriceLabel(item: IFeeItem, currency: string): string {
+  return item.priceLabel ?? formatMoney(item.amount, currency);
+}
+
+/**
+ * "From GHS X" entry price for a class — the smallest possible bill: every
+ * always-charged item plus the cheapest variant of each mandatory choice
+ * group (add-ons are the applicant's call). A fee-less class (e.g. a free
+ * taster) has no price to show. Cards, the detail hero, and the sticky apply
+ * bar all share it.
  */
 export function fromPriceLabel(training: ITraining): string | null {
-  const amounts = (training.feeItems ?? [])
-    .filter((item) => item.required && item.amount > 0)
-    .map((item) => item.amount);
-  if (amounts.length === 0) return null;
-  return `From ${formatMoney(Math.min(...amounts), training.currency)}`;
+  const { choiceGroups, requiredItems } = splitFeeItems(training);
+  const base = requiredItems.reduce((sum, item) => sum + item.amount, 0);
+  const variants = choiceGroups
+    .filter((group) => group.mandatory)
+    .reduce(
+      (sum, group) => sum + Math.min(...group.items.map((i) => i.amount)),
+      0,
+    );
+  const minimum = base + variants;
+  if (minimum <= 0) return null;
+  return `From ${formatMoney(minimum, training.currency)}`;
 }
 
 /** duration · mode, e.g. "2 months · In-person · Kumasi studio". */

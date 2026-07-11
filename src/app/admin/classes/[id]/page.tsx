@@ -228,7 +228,11 @@ export default function TrainingDetailPage() {
                 >
                   <span className="text-ink/70">
                     {f.name}
-                    {f.required ? "" : " (optional)"}
+                    {f.choiceGroup
+                      ? " (pick one)"
+                      : f.required
+                        ? ""
+                        : " (optional)"}
                   </span>
                   <span className="whitespace-nowrap font-semibold text-ink">
                     {f.priceLabel ?? formatMoney(f.amount, training.currency)}

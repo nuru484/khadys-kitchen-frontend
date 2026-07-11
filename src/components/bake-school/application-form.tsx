@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -14,12 +14,16 @@ import {
   TurnstileWidget,
   TURNSTILE_ENABLED,
 } from "@/components/ui/TurnstileWidget";
+import {
+  itemPriceLabel,
+  splitFeeItems,
+} from "@/components/trainings/training-price";
 import { cn } from "@/lib/utils";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
 import { formatMoney } from "@/lib/format-money";
 import { useCreateApplicationMutation } from "@/redux/applications/applications-api";
-import type { ITraining } from "@/types/training.types";
+import type { IFeeItem, ITraining } from "@/types/training.types";
 
 const inputClass =
   "w-full rounded-[12px] border border-ink/20 bg-cream px-4 py-3.5 font-sans text-[16px] text-ink outline-none transition-colors focus:border-accent";
@@ -30,20 +34,83 @@ const labelClass =
 /** Where the code is stashed before a Paystack redirect, read back on /trainings/verify. */
 export const APPLY_CODE_KEY = "kk_apply_code";
 
+/** "course-fee" → "Course fee" — a choice group's slug as a human heading. */
+const groupHeading = (key: string) => {
+  const words = key.replace(/[-_]+/g, " ").trim();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+};
+
+/** One selectable fee option — name + note on the left, price on the right. */
+function FeeOption({
+  currency,
+  item,
+  onClick,
+  selected,
+}: {
+  currency: string;
+  item: IFeeItem;
+  onClick: () => void;
+  selected: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className={cn(
+        "flex w-full cursor-pointer items-baseline justify-between gap-4 rounded-[14px] border-[1.5px] px-4 py-3.5 text-left transition-colors",
+        selected
+          ? "border-accent bg-accent/[0.07]"
+          : "border-ink/20 bg-cream hover:border-ink/45",
+      )}
+    >
+      <span className="min-w-0">
+        <span className="block text-[15px] font-semibold text-ink">
+          {item.name}
+        </span>
+        {item.note ? (
+          <span className="mt-0.5 block text-[13.5px] leading-[1.5] text-ink/60">
+            {item.note}
+          </span>
+        ) : null}
+      </span>
+      <span className="shrink-0 text-right">
+        <span className="block whitespace-nowrap font-serif text-[17px] text-ink">
+          {itemPriceLabel(item, currency)}
+        </span>
+        {item.suffix ? (
+          <span className="block text-[12px] text-ink/55">{item.suffix}</span>
+        ) : null}
+      </span>
+    </button>
+  );
+}
+
 export function ApplicationForm({ training }: { training: ITraining }) {
   const fieldId = useId();
-  // The hostel question only exists for classes that offer one (a HOSTEL-kind
-  // fee item); its price hint comes from that same item.
-  const hostelFee = training.feeItems?.find((item) => item.kind === "HOSTEL");
-  const hostelPriceHint = hostelFee
-    ? (hostelFee.priceLabel ??
-      (hostelFee.amount > 0
-        ? `${formatMoney(hostelFee.amount, training.currency)}${hostelFee.suffix ? ` ${hostelFee.suffix}` : ""}`
-        : null))
-    : null;
+  const { choiceGroups, optionalItems, requiredItems } = useMemo(
+    () => splitFeeItems(training),
+    [training],
+  );
+  // Every fee item by id, for price totals and hostel detection.
+  const itemsById = useMemo(
+    () => new Map((training.feeItems ?? []).map((item) => [item.id, item])),
+    [training],
+  );
+  // A mandatory group starts on its first-listed option, so the form is always
+  // in a valid, fully-priced state.
+  const defaultSelection = useMemo(
+    () =>
+      choiceGroups
+        .filter((group) => group.mandatory)
+        .map((group) => group.items[0].id),
+    [choiceGroups],
+  );
+
   const [submitted, setSubmitted] = useState(false);
   const [applicantName, setApplicantName] = useState("friend");
   const [receiptCode, setReceiptCode] = useState("");
+  const [askedHostel, setAskedHostel] = useState(false);
   // Cloudflare Turnstile: the token gates submit only when a site key is set.
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileError, setTurnstileError] = useState(false);
@@ -65,20 +132,46 @@ export function ApplicationForm({ training }: { training: ITraining }) {
       phone: "",
       email: "",
       location: "",
-      hostel: null,
+      selectedFeeItemIds: defaultSelection,
       message: "",
       payNow: false,
     },
   });
 
-  const hostel = useWatch({ control, name: "hostel" });
+  const selected = useWatch({ control, name: "selectedFeeItemIds" });
   const payNow = useWatch({ control, name: "payNow" });
+
+  const isHostelItem = (id: string) => itemsById.get(id)?.kind === "HOSTEL";
+
+  // Variants replace each other; add-ons toggle.
+  const pickVariant = (groupItems: IFeeItem[], id: string, mandatory: boolean) => {
+    const others = selected.filter(
+      (s) => !groupItems.some((item) => item.id === s),
+    );
+    const keep = mandatory || !selected.includes(id);
+    setValue("selectedFeeItemIds", keep ? [...others, id] : others);
+  };
+  const toggleAddOn = (id: string) => {
+    setValue(
+      "selectedFeeItemIds",
+      selected.includes(id)
+        ? selected.filter((s) => s !== id)
+        : [...selected, id],
+    );
+  };
+
+  const total =
+    requiredItems.reduce((sum, item) => sum + item.amount, 0) +
+    selected.reduce((sum, id) => sum + (itemsById.get(id)?.amount ?? 0), 0);
+  const hasFeeChoices = choiceGroups.length > 0 || optionalItems.length > 0;
+  const showFees = hasFeeChoices || total > 0;
 
   const onSubmit = async (data: ApplicationValues) => {
     if (TURNSTILE_ENABLED && !turnstileToken) {
       setTurnstileError(true);
       return;
     }
+    const needsHostel = data.selectedFeeItemIds.some(isHostelItem);
     try {
       const res = await createApplication({
         trainingId: training.id,
@@ -86,7 +179,8 @@ export function ApplicationForm({ training }: { training: ITraining }) {
         phone: data.phone.trim(),
         email: data.email || undefined,
         location: data.location || undefined,
-        needsHostel: data.hostel ?? false,
+        needsHostel,
+        selectedFeeItemIds: data.selectedFeeItemIds,
         message: data.message || undefined,
         payNow: data.payNow,
         turnstileToken: turnstileToken || undefined,
@@ -101,13 +195,13 @@ export function ApplicationForm({ training }: { training: ITraining }) {
 
       setReceiptCode(res.data.code);
       setApplicantName(data.name.trim().split(" ")[0] || "friend");
+      setAskedHostel(needsHostel);
       setSubmitted(true);
     } catch (err) {
       const { message, fieldErrors, hasFieldErrors } = extractApiError(err);
       if (hasFieldErrors && fieldErrors) {
         for (const [field, msg] of Object.entries(fieldErrors)) {
-          const target =
-            field === "fullName" ? "name" : field === "needsHostel" ? "hostel" : field;
+          const target = field === "fullName" ? "name" : field;
           if (
             target === "name" ||
             target === "phone" ||
@@ -164,7 +258,7 @@ export function ApplicationForm({ training }: { training: ITraining }) {
           <p className="text-[14.5px] leading-[1.6] text-ink/55">
             Keep this code safe — quote it to pay in person, or to check your
             status.
-            {hostel === true
+            {askedHostel
               ? " Asked for a hostel place? We'll confirm availability first."
               : ""}
           </p>
@@ -231,30 +325,77 @@ export function ApplicationForm({ training }: { training: ITraining }) {
             </label>
           </div>
 
-          {hostelFee ? (
-            <div className="grid gap-2.5">
-              <span className="text-[13.5px] font-semibold uppercase tracking-[0.06em] text-ink/70">
-                Do you need a hostel place?
-                {hostelPriceHint ? (
-                  <span className="font-normal normal-case tracking-normal">
-                    {" "}
-                    ({hostelPriceHint})
+          {showFees ? (
+            <div className="grid gap-4 rounded-[16px] border border-ink/10 bg-oat/50 p-4 sm:p-5">
+              {choiceGroups.map((group) => (
+                <div key={group.key} className="grid gap-2.5">
+                  <span className="text-[13.5px] font-semibold uppercase tracking-[0.06em] text-ink/70">
+                    {groupHeading(group.key)}
+                    <span className="font-normal normal-case tracking-normal text-ink/55">
+                      {" "}
+                      — pick one
+                    </span>
                   </span>
-                ) : null}
-              </span>
-              <div className="flex flex-wrap gap-2.5">
-                <ChoiceButton
-                  selected={hostel === true}
-                  onClick={() => setValue("hostel", true)}
-                >
-                  Yes, reserve me a bed
-                </ChoiceButton>
-                <ChoiceButton
-                  selected={hostel === false}
-                  onClick={() => setValue("hostel", false)}
-                >
-                  No, I&rsquo;ll commute
-                </ChoiceButton>
+                  {group.items.map((item) => (
+                    <FeeOption
+                      key={item.id}
+                      item={item}
+                      currency={training.currency}
+                      selected={selected.includes(item.id)}
+                      onClick={() =>
+                        pickVariant(group.items, item.id, group.mandatory)
+                      }
+                    />
+                  ))}
+                </div>
+              ))}
+
+              {optionalItems.length > 0 ? (
+                <div className="grid gap-2.5">
+                  <span className="text-[13.5px] font-semibold uppercase tracking-[0.06em] text-ink/70">
+                    Optional extras
+                    <span className="font-normal normal-case tracking-normal text-ink/55">
+                      {" "}
+                      — tap to add
+                    </span>
+                  </span>
+                  {optionalItems.map((item) => (
+                    <FeeOption
+                      key={item.id}
+                      item={item}
+                      currency={training.currency}
+                      selected={selected.includes(item.id)}
+                      onClick={() => toggleAddOn(item.id)}
+                    />
+                  ))}
+                </div>
+              ) : null}
+
+              {requiredItems.some((item) => item.amount > 0) ? (
+                <div className="grid gap-1.5">
+                  {requiredItems
+                    .filter((item) => item.amount > 0)
+                    .map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-baseline justify-between gap-4 px-1 text-[14px] text-ink/70"
+                      >
+                        <span>{item.name}</span>
+                        <span className="whitespace-nowrap">
+                          {itemPriceLabel(item, training.currency)}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              ) : null}
+
+              <div className="flex items-baseline justify-between gap-4 border-t border-ink/10 pt-3.5">
+                <span className="text-[13.5px] font-semibold uppercase tracking-[0.06em] text-ink/70">
+                  Your fee
+                </span>
+                <span className="whitespace-nowrap font-serif text-[22px] leading-tight text-accent">
+                  {formatMoney(total, training.currency)}
+                </span>
               </div>
             </div>
           ) : null}

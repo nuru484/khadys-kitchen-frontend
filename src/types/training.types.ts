@@ -10,6 +10,9 @@ export interface IFeeItem {
   amount: number;
   kind: string;
   required: boolean;
+  /** Items sharing a choiceGroup are mutually exclusive price variants —
+   * the applicant picks exactly one, never the sum. Null = standalone. */
+  choiceGroup: string | null;
   note: string | null;
   /** Unit label after the price, e.g. "for 2 months". */
   suffix: string | null;
@@ -80,6 +83,7 @@ export interface IFeeItemInput {
   amount: number;
   kind: string;
   required: boolean;
+  choiceGroup?: string;
   note?: string;
   suffix?: string;
   priceLabel?: string;

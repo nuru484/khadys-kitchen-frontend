@@ -23,6 +23,10 @@ import {
   useUpdateTrainingMutation,
 } from "@/redux/trainings/trainings-api";
 import {
+  CHARGE_TYPE_LABELS,
+  CHARGE_TYPES,
+  type ChargeType,
+  COURSE_FEE_GROUP,
   FEE_KINDS,
   trainingSchema,
   type TrainingFormValues,
@@ -76,7 +80,9 @@ function toInput(v: TrainingFormValues): ITrainingInput {
       name: f.name,
       amount: Math.round(f.amount * 100), // GHS → pesewas
       kind: f.kind,
-      required: f.required,
+      // The charge type unfolds into the backend's required + choiceGroup pair.
+      required: f.charge !== "OPTIONAL",
+      choiceGroup: f.charge === "COURSE_CHOICE" ? COURSE_FEE_GROUP : undefined,
       note: s(f.note),
       suffix: s(f.suffix),
       priceLabel: s(f.priceLabel),
@@ -109,7 +115,11 @@ function toForm(t: ITraining): TrainingFormValues {
       name: f.name,
       amount: f.amount / 100, // pesewas → GHS
       kind: f.kind as (typeof FEE_KINDS)[number],
-      required: f.required,
+      charge: (f.choiceGroup
+        ? "COURSE_CHOICE"
+        : f.required
+          ? "ALWAYS"
+          : "OPTIONAL") satisfies ChargeType,
       note: f.note ?? "",
       suffix: f.suffix ?? "",
       priceLabel: f.priceLabel ?? "",
@@ -425,7 +435,7 @@ export function TrainingForm({ training }: { training?: ITraining }) {
                 name: "",
                 amount: 0,
                 kind: "OTHER",
-                required: true,
+                charge: "ALWAYS",
                 note: "",
                 suffix: "",
                 priceLabel: "",
@@ -488,11 +498,16 @@ export function TrainingForm({ training }: { training?: ITraining }) {
                 placeholder="e.g. Free or —"
                 {...register(`feeItems.${i}.priceLabel`)}
               />
-              <div className="flex items-center justify-between">
-                <Toggle
-                  label="Charged (part of the bill)"
-                  {...register(`feeItems.${i}.required`)}
-                />
+              <Field label="How it's charged">
+                <Select className="py-3" {...register(`feeItems.${i}.charge`)}>
+                  {CHARGE_TYPES.map((c) => (
+                    <option key={c} value={c}>
+                      {CHARGE_TYPE_LABELS[c]}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <div className="flex items-center justify-end">
                 <button
                   type="button"
                   onClick={() => fees.remove(i)}

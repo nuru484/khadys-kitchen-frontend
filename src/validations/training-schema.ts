@@ -15,12 +15,32 @@ export const FEE_KINDS = [
   "OTHER",
 ] as const;
 
+/**
+ * How a fee item is charged. Maps to the backend's `required` + `choiceGroup`
+ * pair on submit:
+ * - ALWAYS       → required, standalone (every applicant pays it)
+ * - OPTIONAL     → an add-on the applicant may tick when applying
+ * - COURSE_CHOICE → one of the class's mutually exclusive course-fee options —
+ *   the applicant picks exactly one; the amounts are never summed.
+ */
+export const CHARGE_TYPES = ["ALWAYS", "OPTIONAL", "COURSE_CHOICE"] as const;
+export type ChargeType = (typeof CHARGE_TYPES)[number];
+
+export const CHARGE_TYPE_LABELS: Record<ChargeType, string> = {
+  ALWAYS: "Always charged",
+  OPTIONAL: "Optional add-on — applicant may add it",
+  COURSE_CHOICE: "Course fee option — applicant picks one",
+};
+
+/** The single choice group the admin console manages. */
+export const COURSE_FEE_GROUP = "course-fee";
+
 const feeItemSchema = z.object({
   name: z.string().trim().min(1, "Required").max(150),
   // GHS (major units, via valueAsNumber); converted to pesewas on submit.
   amount: z.number({ message: "Enter a number" }).min(0, "Must be 0 or more").max(1_000_000),
   kind: z.enum(FEE_KINDS),
-  required: z.boolean(),
+  charge: z.enum(CHARGE_TYPES),
   note: z.string().trim().max(300).optional(),
   suffix: z.string().trim().max(60).optional(),
   priceLabel: z.string().trim().max(60).optional(),

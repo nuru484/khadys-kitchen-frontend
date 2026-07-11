@@ -9,6 +9,9 @@ export interface IApplyInput {
   email?: string;
   location?: string;
   needsHostel: boolean;
+  /** Fee picks: one item per choice group plus any optional add-ons.
+   * Mirrors the backend `applySchema.selectedFeeItemIds`. */
+  selectedFeeItemIds?: string[];
   message?: string;
   /** When true (and a balance is owed), the backend returns a Paystack URL. */
   payNow?: boolean;

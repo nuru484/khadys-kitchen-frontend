@@ -2,9 +2,10 @@ import { z } from "zod";
 
 /**
  * Bake School application form. Mirrors the backend `applySchema`: name + phone
- * required, the rest optional. `hostel` is a nullable toggle (null = unanswered),
- * and `payNow` opts into paying online — which requires an email (Paystack needs
- * a receipt address), enforced by the refine below.
+ * required, the rest optional. `selectedFeeItemIds` carries the applicant's fee
+ * picks (one variant per choice group plus any optional add-ons — mirrors the
+ * backend field of the same name), and `payNow` opts into paying online — which
+ * requires an email (Paystack needs a receipt address), enforced by the refine.
  */
 const REQUIRED_MESSAGE =
   "Please add your full name and a phone number we can reach you on.";
@@ -17,8 +18,7 @@ export const applicationSchema = z
       .union([z.literal(""), z.string().email("Please enter a valid email.")])
       .optional(),
     location: z.string().trim().optional(),
-    // null = not answered yet; the toggle sets true/false.
-    hostel: z.boolean().nullable(),
+    selectedFeeItemIds: z.array(z.string()),
     message: z.string().trim().optional(),
     payNow: z.boolean(),
   })
