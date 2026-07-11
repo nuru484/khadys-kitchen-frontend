@@ -36,7 +36,7 @@ export function LegalPage({
   sections,
 }: LegalPageProps) {
   return (
-    <div className="flex min-h-screen flex-col overflow-x-hidden bg-cream text-ink">
+    <div className="flex min-h-screen flex-col overflow-x-clip bg-cream text-ink">
       <SiteHeader
         navLinks={NAV_LINKS}
         cta={{ label: "Order now", href: routes.shop }}

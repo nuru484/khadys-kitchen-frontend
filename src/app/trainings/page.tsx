@@ -30,7 +30,7 @@ export default async function TrainingsPage() {
   // client catalogue hydrates over it and keeps filtering/apply behaviour.
   const initialTrainings = await fetchPublicTrainingList();
   return (
-    <div className="min-h-screen overflow-x-hidden bg-cream text-ink">
+    <div className="min-h-screen overflow-x-clip bg-cream text-ink">
       <SiteHeader
         navLinks={NAV_LINKS}
         cta={{ label: "Contact us", href: routes.contact }}

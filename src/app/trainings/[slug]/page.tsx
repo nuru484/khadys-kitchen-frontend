@@ -85,7 +85,7 @@ export default async function TrainingPage({
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-cream text-ink">
+    <div className="min-h-screen overflow-x-clip bg-cream text-ink">
       <SiteHeader
         navLinks={NAV_LINKS}
         cta={

@@ -3,6 +3,7 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import { routes } from "@/lib/routes";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { cn } from "@/lib/utils";
 
@@ -97,6 +98,9 @@ export function SiteHeader({
           rightAction
         )}
       </header>
+
+      {/* Every page with the site header also gets the mobile tab bar. */}
+      <MobileTabBar />
     </>
   );
 }

@@ -18,7 +18,7 @@ export default function ShopLayout({
 }) {
   return (
     <CartProvider>
-      <div className="flex min-h-screen flex-col overflow-x-hidden bg-cream text-ink">
+      <div className="flex min-h-screen flex-col overflow-x-clip bg-cream text-ink">
         <SiteHeader navLinks={NAV_LINKS} action={<CartButton />} mobileMenu />
         <main className="flex-1">{children}</main>
         <SiteFooter cta={{ label: "Order custom bakes", href: routes.shop }} />

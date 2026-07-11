@@ -31,7 +31,7 @@ export default async function LandingPage() {
     fetchPublicAbout(),
   ]);
   return (
-    <div className="min-h-screen overflow-x-hidden bg-cream text-ink">
+    <div className="min-h-screen overflow-x-clip bg-cream text-ink">
       <SiteHeader
         navLinks={NAV_LINKS}
         cta={{ label: "Trainings", href: routes.trainings }}

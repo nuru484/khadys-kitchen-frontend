@@ -51,7 +51,7 @@ export function StickyApplyBar({
     <div
       inert={!visible}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-40 transition-transform duration-300 ease-out md:hidden",
+        "fixed inset-x-0 bottom-[60px] z-40 transition-transform duration-300 ease-out md:hidden",
         visible ? "translate-y-0" : "translate-y-full",
       )}
     >

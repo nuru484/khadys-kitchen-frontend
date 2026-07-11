@@ -30,7 +30,7 @@ export default async function GalleryPage() {
   // client showcase hydrates over it and adds the slideshow behaviour.
   const initialImages = await fetchPublicGalleryList();
   return (
-    <div className="min-h-screen overflow-x-hidden bg-cream text-ink">
+    <div className="min-h-screen overflow-x-clip bg-cream text-ink">
       <SiteHeader
         navLinks={NAV_LINKS}
         cta={{ label: "Order custom bakes", href: routes.shop }}

@@ -102,6 +102,8 @@ export function SiteFooter({ cta }: SiteFooterProps) {
           <span>© 2026 · The authentic taste · Kumasi</span>
         </div>
       </div>
+      {/* Clearance for the fixed mobile tab bar so nothing hides behind it. */}
+      <div aria-hidden="true" className="h-[60px] min-[900px]:hidden" />
     </footer>
   );
 }
