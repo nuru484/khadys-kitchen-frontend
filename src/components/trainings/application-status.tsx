@@ -93,7 +93,7 @@ export function ApplicationStatus({
         {ledger.map((row) => (
           <div
             key={row.label}
-            className="flex items-baseline justify-between gap-6 border-b border-ink/[0.09] px-[clamp(22px,3.5vw,36px)] py-[16px]"
+            className="flex flex-col gap-1 border-b border-ink/[0.09] px-[clamp(22px,3.5vw,36px)] py-[16px] sm:flex-row sm:items-baseline sm:justify-between sm:gap-6"
           >
             <span className="text-[15px] font-semibold text-ink/70">
               {row.label}

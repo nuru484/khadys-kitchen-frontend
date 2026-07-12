@@ -13,8 +13,10 @@ export interface IApplyInput {
    * Mirrors the backend `applySchema.selectedFeeItemIds`. */
   selectedFeeItemIds?: string[];
   message?: string;
-  /** When true (and a balance is owed), the backend returns a Paystack URL. */
-  payNow?: boolean;
+  /** Minor units paid at registration — part or full of the bill. Required
+   * whenever the application owes anything; the backend returns the Paystack
+   * URL for it. Mirrors `applySchema.payAmount`. */
+  payAmount?: number;
   /** Cloudflare Turnstile token; required by the backend when Turnstile is on. */
   turnstileToken?: string;
 }

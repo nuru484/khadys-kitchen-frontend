@@ -44,3 +44,4 @@ next-env.d.ts
 # AI assistant instruction files (kept local, not tracked)
 AGENTS.md
 CLAUDE.md
+.next-build/

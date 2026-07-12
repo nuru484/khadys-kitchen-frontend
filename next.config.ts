@@ -17,6 +17,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Lets verification builds run beside a live `next dev` without the two
+  // fighting over .next (e.g. NEXT_DIST_DIR=.next-build next build).
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   images: {
     remotePatterns: [
       {

@@ -58,7 +58,9 @@ function FeeOption({
       onClick={onClick}
       aria-pressed={selected}
       className={cn(
-        "flex w-full cursor-pointer items-baseline justify-between gap-4 rounded-[14px] border-[1.5px] px-4 py-3.5 text-left transition-colors",
+        // Phones stack title/note above the amount — side-by-side columns
+        // starve long titles of width while the amount floats in dead space.
+        "flex w-full cursor-pointer flex-col gap-1.5 rounded-[14px] border-[1.5px] px-4 py-3.5 text-left transition-colors sm:flex-row sm:items-baseline sm:justify-between sm:gap-4",
         selected
           ? "border-accent bg-accent/[0.07]"
           : "border-ink/20 bg-cream hover:border-ink/45",
@@ -74,7 +76,7 @@ function FeeOption({
           </span>
         ) : null}
       </span>
-      <span className="shrink-0 text-right">
+      <span className="shrink-0 sm:text-right">
         <span className="block whitespace-nowrap font-serif text-[17px] text-ink">
           {itemPriceLabel(item, currency)}
         </span>
@@ -134,12 +136,13 @@ export function ApplicationForm({ training }: { training: ITraining }) {
       location: "",
       selectedFeeItemIds: defaultSelection,
       message: "",
-      payNow: false,
+      payMode: "full",
+      partAmount: "",
     },
   });
 
   const selected = useWatch({ control, name: "selectedFeeItemIds" });
-  const payNow = useWatch({ control, name: "payNow" });
+  const payMode = useWatch({ control, name: "payMode" });
 
   const isHostelItem = (id: string) => itemsById.get(id)?.kind === "HOSTEL";
 
@@ -172,6 +175,38 @@ export function ApplicationForm({ training }: { training: ITraining }) {
       return;
     }
     const needsHostel = data.selectedFeeItemIds.some(isHostelItem);
+
+    // Payment is part of applying now — part or full, never nothing. The
+    // amount bounds depend on the live fee total, so they're checked here
+    // rather than in the static schema.
+    let payAmount: number | undefined;
+    if (total > 0) {
+      if (data.payMode === "part") {
+        const part = Number(data.partAmount);
+        if (!data.partAmount || Number.isNaN(part) || part <= 0) {
+          setError("partAmount", {
+            message: "Enter the amount you're paying now.",
+          });
+          return;
+        }
+        payAmount = Math.round(part * 100);
+        if (payAmount > total) {
+          setError("partAmount", {
+            message: "That's more than your fee — pay in full instead.",
+          });
+          return;
+        }
+      } else {
+        payAmount = total;
+      }
+      if (!data.email) {
+        setError("email", {
+          message: "Add an email so we can send your payment receipt.",
+        });
+        return;
+      }
+    }
+
     try {
       const res = await createApplication({
         trainingId: training.id,
@@ -182,12 +217,12 @@ export function ApplicationForm({ training }: { training: ITraining }) {
         needsHostel,
         selectedFeeItemIds: data.selectedFeeItemIds,
         message: data.message || undefined,
-        payNow: data.payNow,
+        payAmount,
         turnstileToken: turnstileToken || undefined,
       }).unwrap();
 
-      // Paying now: hand off to Paystack, remembering the code for the return trip.
-      if (data.payNow && res.data.authorizationUrl) {
+      // Hand off to Paystack, remembering the code for the return trip.
+      if (res.data.authorizationUrl) {
         sessionStorage.setItem(APPLY_CODE_KEY, res.data.code);
         window.location.assign(res.data.authorizationUrl);
         return;
@@ -201,13 +236,19 @@ export function ApplicationForm({ training }: { training: ITraining }) {
       const { message, fieldErrors, hasFieldErrors } = extractApiError(err);
       if (hasFieldErrors && fieldErrors) {
         for (const [field, msg] of Object.entries(fieldErrors)) {
-          const target = field === "fullName" ? "name" : field;
+          const target =
+            field === "fullName"
+              ? "name"
+              : field === "payAmount"
+                ? "partAmount"
+                : field;
           if (
             target === "name" ||
             target === "phone" ||
             target === "email" ||
             target === "location" ||
-            target === "message"
+            target === "message" ||
+            target === "partAmount"
           ) {
             setError(target, { message: msg });
           }
@@ -296,7 +337,7 @@ export function ApplicationForm({ training }: { training: ITraining }) {
 
           <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] gap-[22px]">
             <label className={labelClass}>
-              Email {payNow ? "(required to pay online)" : "(optional)"}
+              Email {total > 0 ? "(required — payment receipt)" : "(optional)"}
               <input
                 {...register("email")}
                 type="email"
@@ -400,25 +441,53 @@ export function ApplicationForm({ training }: { training: ITraining }) {
             </div>
           ) : null}
 
-          <div className="grid gap-2.5">
-            <span className="text-[13.5px] font-semibold uppercase tracking-[0.06em] text-ink/70">
-              How would you like to pay?
-            </span>
-            <div className="flex flex-wrap gap-2.5">
-              <ChoiceButton
-                selected={payNow === false}
-                onClick={() => setValue("payNow", false)}
-              >
-                Pay later
-              </ChoiceButton>
-              <ChoiceButton
-                selected={payNow === true}
-                onClick={() => setValue("payNow", true)}
-              >
-                Pay now (card / MoMo)
-              </ChoiceButton>
+          {total > 0 ? (
+            <div className="grid gap-2.5">
+              <span className="text-[13.5px] font-semibold uppercase tracking-[0.06em] text-ink/70">
+                How much are you paying now?
+              </span>
+              <div className="flex flex-wrap gap-2.5">
+                <ChoiceButton
+                  selected={payMode === "full"}
+                  onClick={() => setValue("payMode", "full")}
+                >
+                  Full — {formatMoney(total, training.currency)}
+                </ChoiceButton>
+                <ChoiceButton
+                  selected={payMode === "part"}
+                  onClick={() => setValue("payMode", "part")}
+                >
+                  Part payment
+                </ChoiceButton>
+              </div>
+              {payMode === "part" ? (
+                <label className={labelClass}>
+                  Amount to pay now ({training.currency})
+                  <input
+                    {...register("partAmount")}
+                    type="number"
+                    inputMode="decimal"
+                    min={1}
+                    step="0.01"
+                    placeholder="e.g. 500"
+                    aria-invalid={errors.partAmount ? true : undefined}
+                    aria-describedby={
+                      errors.partAmount ? `${fieldId}-part` : undefined
+                    }
+                    className={inputClass}
+                  />
+                  <FieldError
+                    id={`${fieldId}-part`}
+                    message={errors.partAmount?.message}
+                  />
+                  <span className="text-[13px] font-normal normal-case tracking-normal text-ink/55">
+                    Pay any amount now — the balance stays on your receipt code
+                    and you can complete it anytime.
+                  </span>
+                </label>
+              ) : null}
             </div>
-          </div>
+          ) : null}
 
           <label className={labelClass}>
             Anything we should know? (optional)
@@ -457,11 +526,14 @@ export function ApplicationForm({ training }: { training: ITraining }) {
             loadingText="Submitting…"
             className="w-full rounded-full"
           >
-            {payNow ? "Continue to payment" : "Submit application"}
+            {total > 0 ? "Continue to payment" : "Submit application"}
           </Button>
           <p className="text-center text-[13px] text-ink/50">
             By applying you agree to be contacted by Khady&rsquo;s Kitchen about
-            enrolment. {payNow ? "You'll pay securely via Paystack." : "You can pay now or later."}
+            enrolment.{" "}
+            {total > 0
+              ? "You'll pay securely via Paystack — part or full, your choice."
+              : "We'll confirm your place on WhatsApp."}
           </p>
         </form>
       )}

@@ -292,9 +292,9 @@ export default function ApplicationDetailPage() {
             {app.payments.map((p) => (
               <div
                 key={p.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-ink/10 px-4 py-3 text-[14px]"
+                className="flex flex-col gap-2 rounded-[12px] border border-ink/10 px-4 py-3 text-[14px] min-[480px]:flex-row min-[480px]:flex-wrap min-[480px]:items-center min-[480px]:justify-between min-[480px]:gap-3"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                   <span className="font-semibold">
                     {formatMoney(p.amount, p.currency)}
                   </span>
@@ -303,8 +303,8 @@ export default function ApplicationDetailPage() {
                   </span>
                   <StatusBadge status={p.status} />
                 </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-right text-[13px] text-ink/50">
+                <div className="flex items-center gap-4 min-[480px]:justify-end">
+                  <span className="text-[13px] text-ink/50 min-[480px]:text-right">
                     {formatDateTime(p.paidAt ?? null)}
                     {p.reversedAt ? (
                       <span className="block text-[12px] text-ink/45">
@@ -362,7 +362,7 @@ function Row({
   strong?: boolean;
 }) {
   return (
-    <div className="flex justify-between gap-4">
+    <div className="flex flex-col gap-0.5 min-[480px]:flex-row min-[480px]:justify-between min-[480px]:gap-4">
       <span className="text-ink/55">{label}</span>
       <span
         className={strong ? "font-semibold text-ink" : "font-medium text-ink"}
