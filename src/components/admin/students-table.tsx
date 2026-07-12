@@ -208,7 +208,11 @@ export function StudentsTable({
                       <th className="px-4 py-3 font-semibold">Class</th>
                     ) : null}
                     <th className="px-4 py-3 font-semibold">Status</th>
-                    <th className="px-6 py-3.5 text-right">
+                    {/* relative: sr-only text is absolutely positioned, and
+                        without a positioned ancestor INSIDE the overflow-x-auto
+                        wrapper it escapes the scroll clip and widens the page
+                        on small screens. */}
+                    <th className="relative px-6 py-3.5 text-right">
                       <span className="sr-only">Actions</span>
                     </th>
                   </tr>

@@ -171,7 +171,11 @@ export function ApplicationsTable({
                     <th className="px-4 py-3 font-semibold">Balance</th>
                     <th className="px-4 py-3 font-semibold">Status</th>
                     <th className="px-4 py-3 font-semibold">Payment</th>
-                    <th className="px-6 py-3.5 text-right font-semibold">
+                    {/* relative: sr-only text is absolutely positioned, and
+                        without a positioned ancestor INSIDE the overflow-x-auto
+                        wrapper it escapes the scroll clip and widens the page
+                        on small screens. */}
+                    <th className="relative px-6 py-3.5 text-right font-semibold">
                       <span className="sr-only">Actions</span>
                     </th>
                   </tr>
