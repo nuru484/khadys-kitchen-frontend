@@ -58,6 +58,18 @@ export function itemPriceLabel(item: IFeeItem, currency: string): string {
 }
 
 /**
+ * True when a fee's name/note is long enough to wrap beside its price. Such
+ * rows keep the amount BELOW the text at every breakpoint — the text spreads
+ * the full row instead of running down a starved column — matching the
+ * stacking phones always use. CSS can't branch on "did the text wrap", so
+ * this length heuristic decides deterministically; pair it with flex-wrap so
+ * borderline widths degrade the same way.
+ */
+export function feeRowStacks(name: string, note?: string | null): boolean {
+  return name.length > 42 || (note?.length ?? 0) > 56;
+}
+
+/**
  * "From GHS X" entry price for a class — the smallest possible bill: every
  * always-charged item plus the cheapest variant of each mandatory choice
  * group (add-ons are the applicant's call). A fee-less class (e.g. a free

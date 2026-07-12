@@ -1,9 +1,11 @@
 import { Reveal } from "@/components/reveal";
 import {
+  feeRowStacks,
   isAddOn,
   itemPriceLabel,
   splitFeeItems,
 } from "@/components/trainings/training-price";
+import { cn } from "@/lib/utils";
 import type { IFeeItem, ITraining } from "@/types/training.types";
 
 /**
@@ -48,9 +50,23 @@ function FeeRow({
   item: IFeeItem;
   currency: string;
 }) {
+  // A name/note that wraps keeps the price BELOW it at every width — the
+  // text spreads the full row instead of squeezing beside a price column.
+  const stacks = feeRowStacks(item.name, item.note);
   return (
-    <div className="flex flex-col gap-2.5 px-[clamp(20px,3.5vw,36px)] py-[clamp(20px,3vw,28px)] sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-6">
-      <div className="flex items-baseline gap-[18px] sm:flex-[1_1_320px]">
+    <div
+      className={cn(
+        "flex flex-col gap-2.5 px-[clamp(20px,3.5vw,36px)] py-[clamp(20px,3vw,28px)]",
+        !stacks &&
+          "sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-6",
+      )}
+    >
+      <div
+        className={cn(
+          "flex items-baseline gap-[18px]",
+          !stacks && "sm:flex-[1_1_320px]",
+        )}
+      >
         <span className="min-w-[22px] font-serif text-[15px] text-accent">
           {index}
         </span>
@@ -70,7 +86,7 @@ function FeeRow({
           ) : null}
         </div>
       </div>
-      <div className="pl-10 sm:pl-0 sm:text-right">
+      <div className={cn("pl-10", !stacks && "sm:pl-0 sm:text-right")}>
         <div className="whitespace-nowrap font-serif text-[clamp(18px,2vw,22px)] leading-tight">
           {itemPriceLabel(item, currency)}
         </div>

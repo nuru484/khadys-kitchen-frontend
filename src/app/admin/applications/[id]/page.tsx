@@ -13,6 +13,8 @@ import { RecordPaymentModal } from "@/components/admin/record-payment-modal";
 import { PageActions } from "@/components/admin/page-actions";
 import { StatusPicker } from "@/components/admin/status-picker";
 import { useConfirm } from "@/components/admin/use-confirm";
+import { cn } from "@/lib/utils";
+import { feeRowStacks } from "@/components/trainings/training-price";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
 import { formatMoney } from "@/lib/format-money";
@@ -233,7 +235,12 @@ export default function ApplicationDetailPage() {
             {(app.feeLines ?? []).map((f) => (
               <div
                 key={f.id}
-                className="flex flex-col gap-0.5 min-[480px]:flex-row min-[480px]:justify-between min-[480px]:gap-4 text-[14px]"
+                className={cn(
+                  // Long fee names keep the amount below them at every width.
+                  "flex flex-col gap-0.5 text-[14px]",
+                  !feeRowStacks(f.name) &&
+                    "min-[480px]:flex-row min-[480px]:flex-wrap min-[480px]:justify-between min-[480px]:gap-x-4",
+                )}
               >
                 <span className="text-ink/70">{f.name}</span>
                 <span className="font-medium">

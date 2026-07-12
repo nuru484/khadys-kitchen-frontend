@@ -15,6 +15,7 @@ import {
   TURNSTILE_ENABLED,
 } from "@/components/ui/TurnstileWidget";
 import {
+  feeRowStacks,
   itemPriceLabel,
   splitFeeItems,
 } from "@/components/trainings/training-price";
@@ -52,6 +53,7 @@ function FeeOption({
   onClick: () => void;
   selected: boolean;
 }) {
+  const stacks = feeRowStacks(item.name, item.note);
   return (
     <button
       type="button"
@@ -60,7 +62,12 @@ function FeeOption({
       className={cn(
         // Phones stack title/note above the amount — side-by-side columns
         // starve long titles of width while the amount floats in dead space.
-        "flex w-full cursor-pointer flex-col gap-1.5 rounded-[14px] border-[1.5px] px-4 py-3.5 text-left transition-colors sm:flex-row sm:items-baseline sm:justify-between sm:gap-4",
+        // From sm the two share a row ONLY when the text fits one line: long
+        // names/notes stay stacked, and flex-wrap drops the amount below on
+        // borderline widths.
+        "flex w-full cursor-pointer flex-col gap-1.5 rounded-[14px] border-[1.5px] px-4 py-3.5 text-left transition-colors",
+        !stacks &&
+          "sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-4",
         selected
           ? "border-accent bg-accent/[0.07]"
           : "border-ink/20 bg-cream hover:border-ink/45",
@@ -76,7 +83,7 @@ function FeeOption({
           </span>
         ) : null}
       </span>
-      <span className="shrink-0 sm:text-right">
+      <span className={cn("shrink-0", !stacks && "sm:text-right")}>
         <span className="block whitespace-nowrap font-serif text-[17px] text-ink">
           {itemPriceLabel(item, currency)}
         </span>
