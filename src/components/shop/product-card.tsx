@@ -31,10 +31,12 @@ export function ProductCard({ product }: { product: IProduct }) {
           </span>
         </div>
         <div className="flex flex-1 flex-col gap-[9px] px-6 pb-[26px] pt-[22px]">
+          {/* The title clamps AND reserves two lines, so every card in the
+              grid shares one height — the detail page carries the full name. */}
           <TitlePriceRow
             name={product.name}
             price={listPriceLabel(product)}
-            nameClassName="font-serif text-[22px] font-normal line-clamp-2"
+            nameClassName="font-serif text-[22px] font-normal leading-[1.2] line-clamp-2 min-h-[2.4em]"
             priceClassName="text-[15.5px] font-semibold text-accent"
           />
           {/* Fixed two-line block so the card's height is set by the layout, not

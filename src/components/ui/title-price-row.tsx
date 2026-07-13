@@ -29,7 +29,9 @@ export function TitlePriceRow({
 }: TitlePriceRowProps) {
   return (
     <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-      <h3 className={cn(nameClassName, "max-w-full shrink-0 break-words")}>{name}</h3>
+      <h3 title={name} className={cn(nameClassName, "max-w-full shrink-0 break-words")}>
+        {name}
+      </h3>
       <span className={cn("whitespace-nowrap", priceClassName)}>{price}</span>
     </div>
   );

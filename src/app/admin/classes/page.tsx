@@ -198,16 +198,27 @@ export default function ClassesPage() {
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-serif text-[24px] font-normal">{t.name}</h3>
-                  <div className="mt-1 text-[13.5px] text-ink/55">
+                  {/* Clamped to two lines (with the space always reserved) so
+                      a max-length name can't balloon the card — the detail
+                      page carries the full text. */}
+                  <h3
+                    title={t.name}
+                    className="line-clamp-2 min-h-[2.4em] break-words font-serif text-[24px] font-normal leading-[1.2]"
+                  >
+                    {t.name}
+                  </h3>
+                  <div className="mt-1 truncate text-[13.5px] text-ink/55">
                     {t.startDate ? formatDate(t.startDate) : "Dates TBC"}
                     {t.endDate ? ` – ${formatDate(t.endDate)}` : ""}
                   </div>
                 </div>
-                <p className="line-clamp-2 flex-1 text-[14px] leading-[1.6] text-ink/[0.68]">
+                {/* No flex-1 here: stretching a line-clamped box repaints the
+                    hidden lines past the ellipsis — the footer's mt-auto does
+                    the pinning instead. */}
+                <p className="line-clamp-2 min-h-[3.2em] text-[14px] leading-[1.6] text-ink/[0.68]">
                   {t.summary}
                 </p>
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-ink/10 pt-3.5">
+                <div className="mt-auto flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-ink/10 pt-3.5">
                   <div>
                     <div className="font-serif text-[22px]">
                       {t.counts?.applications ?? 0}

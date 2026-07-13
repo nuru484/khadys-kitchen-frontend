@@ -50,19 +50,20 @@ export function TrainingCard({ training }: { training: ITraining }) {
         </div>
 
         <div className="flex flex-1 flex-col gap-[9px] px-6 pb-[26px] pt-[22px]">
-          <h3 className="font-serif text-[22px] font-normal leading-[1.2] line-clamp-2">
+          {/* Every text block clamps AND reserves its space, so all cards in
+              the grid share one height — the detail page carries full copy. */}
+          <h3
+            title={training.name}
+            className="line-clamp-2 min-h-[2.4em] break-words font-serif text-[22px] font-normal leading-[1.2]"
+          >
             {training.name}
           </h3>
-          {/* Fixed two-line block so the card's height is set by the layout,
-              not the copy (same trick as the shop cards). */}
           <p className="line-clamp-2 min-h-[3.2em] text-[14.5px] leading-[1.6] text-ink/[0.68]">
             {training.summary}
           </p>
-          {meta ? (
-            <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink/55">
-              {meta}
-            </p>
-          ) : null}
+          <p className="min-h-[1.3em] truncate text-[13px] font-semibold uppercase tracking-[0.08em] text-ink/55">
+            {meta ?? ""}
+          </p>
           <span className="mt-auto flex items-baseline justify-between gap-4 pt-1.5">
             {price ? (
               <span className="text-[15px] font-semibold text-accent">{price}</span>
