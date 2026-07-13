@@ -40,12 +40,13 @@ function TileLink({
   return (
     <Link
       href={href}
-      className="block min-w-0 rounded-[18px] border border-ink/10 bg-card px-[22px] py-5 no-underline transition-colors hover:border-accent/50"
+      // Compact padding + a lower size floor so tiles work 2-up on small phones.
+      className="block min-w-0 rounded-[18px] border border-ink/10 bg-card px-[clamp(14px,2.5vw,22px)] py-[clamp(14px,2vw,20px)] no-underline transition-colors hover:border-accent/50"
     >
-      <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink/50">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink/50 sm:text-[12px]">
         {label}
       </div>
-      <div className="mt-2 font-serif text-[clamp(24px,2.6vw,30px)]">
+      <div className="mt-2 break-words font-serif text-[clamp(19px,5vw,30px)] sm:text-[clamp(22px,2.6vw,30px)]">
         {value}
       </div>
       {note ? (
@@ -122,7 +123,7 @@ export default function DashboardPage() {
       {isLoading ? (
         <div className="grid gap-5" aria-busy="true">
           {/* Stat tiles: label + big number + sublabel, echoing the real cards. */}
-          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-3.5 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
@@ -223,8 +224,9 @@ function AggregatesSection({
           isFetching && "opacity-60",
         )}
       >
-        {/* Shop stats — the first three tiles are live/now, the fourth follows the range. */}
-        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
+        {/* Shop stats — the first three tiles are live/now, the fourth follows
+            the range. 2-up from small phones so the overview fits one screen. */}
+        <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-3.5 xl:grid-cols-4">
           <TileLink
             label="Orders today"
             value={String(shop.ordersToday)}

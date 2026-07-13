@@ -4,7 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, Pager } from "@/components/admin/ui";
 import { ActionMenu } from "@/components/admin/action-menu";
-import { SkeletonCells } from "@/components/admin/table-bits";
+import {
+  RowCard,
+  RowCardList,
+  SkeletonCells,
+  SkeletonRowCards,
+} from "@/components/admin/table-bits";
 import { useConfirm } from "@/components/admin/use-confirm";
 import { DateRangeFields, FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -82,6 +87,54 @@ export function ApplicationsTable({
 
   const rows = data?.data ?? [];
   const meta = data?.meta;
+
+  // One source for a row's actions — the desktop table and the mobile cards
+  // render the same menu.
+  const menuItemsFor = (a: (typeof rows)[number]) => [
+    {
+      label: "View details",
+      onClick: () => router.push(`/admin/applications/${a.id}`),
+    },
+    ...applicationStatusActionsFor(isAdmin)
+      .filter((act) => act.status !== a.status)
+      .map((act) => ({
+        label: act.label,
+        variant:
+          act.variant === "danger" ? ("danger" as const) : ("default" as const),
+        onClick: () =>
+          confirm({
+            title: `${act.label} this applicant?`,
+            description: applicationStatusCopy(act.status),
+            confirmText: act.label,
+            isDestructive: act.variant === "danger",
+            onConfirm: () =>
+              run(
+                () => updateStatus({ id: a.id, status: act.status }).unwrap(),
+                "Status updated",
+              ),
+          }),
+      })),
+    ...(isAdmin
+      ? [
+          {
+            label: "Delete",
+            variant: "danger" as const,
+            onClick: () =>
+              confirm({
+                title: "Delete this application?",
+                description: APPLICATION_DELETE_COPY,
+                confirmText: "Delete application",
+                isDestructive: true,
+                onConfirm: () =>
+                  run(
+                    () => deleteApplication(a.id).unwrap(),
+                    "Application deleted",
+                  ),
+              }),
+          },
+        ]
+      : []),
+  ];
   const activeCount = Object.entries(filters).filter(
     ([, v]) => v && v !== "all",
   ).length;
@@ -162,7 +215,44 @@ export function ApplicationsTable({
               isFetching && !isLoading && "opacity-60",
             )}
           >
-            <div className="overflow-x-auto">
+            {/* Phones: row cards — every column's data visible, no side-scroll. */}
+            <RowCardList>
+              {isLoading ? (
+                <SkeletonRowCards />
+              ) : (
+                rows.map((a) => (
+                  <RowCard
+                    key={a.id}
+                    onOpen={() => router.push(`/admin/applications/${a.id}`)}
+                    action={<ActionMenu items={menuItemsFor(a)} />}
+                  >
+                    <div className="truncate text-[15px] font-semibold text-ink">
+                      {a.fullName}
+                    </div>
+                    <div className="mt-0.5 truncate text-[12.5px] text-ink/55">
+                      {a.code}
+                      {a.email ? ` · ${a.email}` : ""}
+                    </div>
+                    <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                      <StatusBadge status={a.status} />
+                      <StatusBadge status={a.paymentStatus} />
+                    </div>
+                    <div className="mt-2.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                      <span className="text-[13.5px] text-ink/70">
+                        Balance{" "}
+                        <span className="font-semibold text-ink">
+                          {formatMoney(a.balance, a.currency)}
+                        </span>
+                      </span>
+                      <span className="text-[12.5px] text-ink/50">{a.phone}</span>
+                    </div>
+                  </RowCard>
+                ))
+              )}
+            </RowCardList>
+
+            {/* ≥md: the full table. */}
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="border-b border-ink/10 text-[12px] font-semibold uppercase tracking-[0.06em] text-ink/50">
@@ -217,60 +307,7 @@ export function ApplicationsTable({
                         <StatusBadge status={a.paymentStatus} />
                       </td>
                       <td className="px-6 py-3 text-right">
-                        <ActionMenu
-                          items={[
-                            {
-                              label: "View details",
-                              onClick: () =>
-                                router.push(`/admin/applications/${a.id}`),
-                            },
-                            ...applicationStatusActionsFor(isAdmin).filter(
-                              (act) => act.status !== a.status,
-                            ).map((act) => ({
-                              label: act.label,
-                              variant:
-                                act.variant === "danger"
-                                  ? ("danger" as const)
-                                  : ("default" as const),
-                              onClick: () =>
-                                confirm({
-                                  title: `${act.label} this applicant?`,
-                                  description: applicationStatusCopy(act.status),
-                                  confirmText: act.label,
-                                  isDestructive: act.variant === "danger",
-                                  onConfirm: () =>
-                                    run(
-                                      () =>
-                                        updateStatus({
-                                          id: a.id,
-                                          status: act.status,
-                                        }).unwrap(),
-                                      "Status updated",
-                                    ),
-                                }),
-                            })),
-                            ...(isAdmin
-                              ? [
-                                  {
-                                    label: "Delete",
-                                    variant: "danger" as const,
-                                    onClick: () =>
-                                      confirm({
-                                        title: "Delete this application?",
-                                        description: APPLICATION_DELETE_COPY,
-                                        confirmText: "Delete application",
-                                        isDestructive: true,
-                                        onConfirm: () =>
-                                          run(
-                                            () => deleteApplication(a.id).unwrap(),
-                                            "Application deleted",
-                                          ),
-                                      }),
-                                  },
-                                ]
-                              : []),
-                          ]}
-                        />
+                        <ActionMenu items={menuItemsFor(a)} />
                       </td>
                     </tr>
                     ))

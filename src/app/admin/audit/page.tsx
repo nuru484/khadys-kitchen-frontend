@@ -2,7 +2,14 @@
 
 import { Card, Pager } from "@/components/admin/ui";
 import { DateRangeFields, FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
-import { DateTimeCell, SkeletonCells } from "@/components/admin/table-bits";
+import {
+  DateTimeCell,
+  RowCard,
+  RowCardList,
+  SkeletonCells,
+  SkeletonRowCards,
+} from "@/components/admin/table-bits";
+import { formatDateTime } from "@/lib/format-date";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -128,7 +135,48 @@ export default function AuditPage() {
           <Card
             className={cn("overflow-hidden transition-opacity", isFetching && !isLoading && "opacity-60")}
           >
-            <div className="overflow-x-auto">
+            {/* Phones: row cards — every column's data visible, no side-scroll. */}
+            <RowCardList>
+              {isLoading ? (
+                <SkeletonRowCards />
+              ) : (
+                rows.map((log) => {
+                  const metaStr =
+                    log.metadata && typeof log.metadata === "object"
+                      ? JSON.stringify(log.metadata)
+                      : null;
+                  return (
+                    <RowCard key={log.id}>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+                        <span className="rounded-full bg-ink/[0.06] px-2.5 py-1 text-[12.5px] font-medium text-ink/75">
+                          {humanize(log.action)}
+                        </span>
+                        <span className="text-[12px] text-ink/50">
+                          {log.entity}
+                          {log.entityId ? ` · ${log.entityId.slice(0, 8)}` : ""}
+                        </span>
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+                        <span className="truncate text-[13.5px] font-medium text-ink">
+                          {log.actor ? log.actor.name : "System"}
+                        </span>
+                        <span className="text-[12px] text-ink/50">
+                          {formatDateTime(log.createdAt)}
+                        </span>
+                      </div>
+                      {metaStr ? (
+                        <div className="mt-1.5 truncate font-mono text-[11.5px] text-ink/45">
+                          {metaStr}
+                        </div>
+                      ) : null}
+                    </RowCard>
+                  );
+                })
+              )}
+            </RowCardList>
+
+            {/* ≥md: the full table. */}
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="border-b border-ink/10 text-[12px] font-semibold uppercase tracking-[0.06em] text-ink/50">

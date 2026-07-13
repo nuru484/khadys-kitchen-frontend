@@ -485,7 +485,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 <div className="text-[11.5px] font-semibold uppercase tracking-[0.18em] text-accent">
                   {crumb}
                 </div>
-                <h1 className="mt-0.5 truncate font-serif text-[clamp(20px,2.4vw,26px)] font-normal">
+                {/* Phones: clamp to two lines instead of truncating — titles
+                    like "Student applications" stay readable at 280px. */}
+                <h1 className="mt-0.5 line-clamp-2 font-serif text-[clamp(19px,2.4vw,26px)] font-normal leading-snug min-[1000px]:truncate">
                   {title}
                 </h1>
               </div>

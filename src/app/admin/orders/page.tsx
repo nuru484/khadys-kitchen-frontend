@@ -12,7 +12,13 @@ import {
 } from "@/lib/admin/order-actions";
 import { useAuthRole } from "@/hooks/use-auth-role";
 import { DateRangeFields, FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
-import { DateTimeCell, SkeletonCells } from "@/components/admin/table-bits";
+import {
+  DateTimeCell,
+  RowCard,
+  RowCardList,
+  SkeletonCells,
+  SkeletonRowCards,
+} from "@/components/admin/table-bits";
 import { WalkInOrderModal } from "@/components/admin/walk-in-order-modal";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
@@ -20,6 +26,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/lib/format-money";
+import { formatDateTime } from "@/lib/format-date";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
 import { useTableQuery } from "@/hooks/use-table-query";
@@ -60,6 +67,40 @@ export default function OrdersPage() {
       notify.error("Action failed", { description: extractApiError(err).message });
     }
   };
+
+  // One source for a row's actions — the desktop table and the mobile cards
+  // render the same menu.
+  const menuItemsFor = (o: IOrder) => [
+    {
+      label: "View details",
+      onClick: () => router.push(`/admin/orders/${o.id}`),
+    },
+    ...orderActionsFor(o.status, isAdmin).map((a) => ({
+      label: a.label,
+      variant:
+        a.action === "cancel" ? ("danger" as const) : ("default" as const),
+      onClick: () =>
+        confirm({
+          title: ORDER_CONFIRM_COPY[a.action].title,
+          description: ORDER_CONFIRM_COPY[a.action].description,
+          confirmText: a.label,
+          isDestructive: a.action === "cancel",
+          onConfirm: () =>
+            run(
+              () => setOrderStatus({ id: o.id, action: a.action }).unwrap(),
+              "Order updated",
+            ),
+        }),
+    })),
+    ...(o.balance > 0 && o.status !== "CANCELLED"
+      ? [
+          {
+            label: "Record payment",
+            onClick: () => setPayingOrder(o),
+          },
+        ]
+      : []),
+  ];
   // Deep-linked from an item's "View orders" — narrows the list to orders
   // containing that product; cleared with its chip.
   const productId = useSearchParams().get("productId") ?? undefined;
@@ -179,7 +220,49 @@ export default function OrdersPage() {
               isFetching && !isLoading && "opacity-60",
             )}
           >
-            <div className="overflow-x-auto">
+            {/* Phones: row cards — every column's data visible, no side-scroll. */}
+            <RowCardList>
+              {isLoading ? (
+                <SkeletonRowCards />
+              ) : (
+                rows.map((o) => {
+                  const itemCount = o.items.reduce((n, i) => n + i.quantity, 0);
+                  return (
+                    <RowCard
+                      key={o.id}
+                      onOpen={() => router.push(`/admin/orders/${o.id}`)}
+                      action={<ActionMenu items={menuItemsFor(o)} />}
+                    >
+                      <div className="truncate text-[15px] font-semibold text-ink">
+                        {o.fullName}
+                      </div>
+                      <div className="mt-0.5 text-[12.5px] text-ink/55">
+                        {o.code}
+                      </div>
+                      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                        <StatusBadge status={o.status} />
+                        <StatusBadge status={o.paymentStatus} />
+                      </div>
+                      <div className="mt-2.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                        <span className="text-[14px] font-semibold text-ink">
+                          {formatMoney(o.total, o.currency)}
+                          <span className="font-normal text-ink/55">
+                            {" "}
+                            · {itemCount} item{itemCount === 1 ? "" : "s"}
+                          </span>
+                        </span>
+                        <span className="text-[12.5px] text-ink/50">
+                          {formatDateTime(o.createdAt)}
+                        </span>
+                      </div>
+                    </RowCard>
+                  );
+                })
+              )}
+            </RowCardList>
+
+            {/* ≥md: the full table. */}
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="border-b border-ink/10 text-[12px] font-semibold uppercase tracking-[0.06em] text-ink/50">
@@ -226,47 +309,7 @@ export default function OrdersPage() {
                           <DateTimeCell iso={o.createdAt} />
                         </td>
                         <td className="px-6 py-3 text-right">
-                          <ActionMenu
-                            items={[
-                              {
-                                label: "View details",
-                                onClick: () =>
-                                  router.push(`/admin/orders/${o.id}`),
-                              },
-                              ...orderActionsFor(o.status, isAdmin).map((a) => ({
-                                label: a.label,
-                                variant:
-                                  a.action === "cancel"
-                                    ? ("danger" as const)
-                                    : ("default" as const),
-                                onClick: () =>
-                                  confirm({
-                                    title: ORDER_CONFIRM_COPY[a.action].title,
-                                    description:
-                                      ORDER_CONFIRM_COPY[a.action].description,
-                                    confirmText: a.label,
-                                    isDestructive: a.action === "cancel",
-                                    onConfirm: () =>
-                                      run(
-                                        () =>
-                                          setOrderStatus({
-                                            id: o.id,
-                                            action: a.action,
-                                          }).unwrap(),
-                                        "Order updated",
-                                      ),
-                                  }),
-                              })),
-                              ...(o.balance > 0 && o.status !== "CANCELLED"
-                                ? [
-                                    {
-                                      label: "Record payment",
-                                      onClick: () => setPayingOrder(o),
-                                    },
-                                  ]
-                                : []),
-                            ]}
-                          />
+                          <ActionMenu items={menuItemsFor(o)} />
                         </td>
                       </tr>
                     );

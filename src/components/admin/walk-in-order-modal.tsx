@@ -189,7 +189,7 @@ export function WalkInOrderModal({
           <span className="font-semibold">{formatMoney(total)}</span>
         </div>
 
-        <div className="mt-1 flex justify-end gap-3">
+        <div className="mt-1 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end sm:gap-3 [&>*]:w-full sm:[&>*]:w-auto">
           <Button type="button" variant="outline" onClick={onClose}>
             Cancel
           </Button>

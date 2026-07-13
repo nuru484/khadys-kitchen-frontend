@@ -6,7 +6,12 @@ import { useRouter } from "next/navigation";
 import { Card, Pager } from "@/components/admin/ui";
 import { ActionMenu } from "@/components/admin/action-menu";
 import { EditStudentModal } from "@/components/admin/edit-student-modal";
-import { SkeletonCells } from "@/components/admin/table-bits";
+import {
+  RowCard,
+  RowCardList,
+  SkeletonCells,
+  SkeletonRowCards,
+} from "@/components/admin/table-bits";
 import { useConfirm } from "@/components/admin/use-confirm";
 import { DateRangeFields, FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -131,6 +136,35 @@ export function StudentsTable({
 
   const rows = data?.data ?? [];
   const meta = data?.meta;
+
+  // One source for a row's actions — the desktop table and the mobile cards
+  // render the same menu.
+  const menuItemsFor = (st: IStudent) => [
+    {
+      label: "View details",
+      onClick: () => router.push(`/admin/students/${st.id}`),
+    },
+    { label: "Edit", onClick: () => setEditing(st) },
+    ...statusItems(st),
+    ...(isAdmin
+      ? [
+          {
+            label: "Delete",
+            variant: "danger" as const,
+            onClick: () =>
+              confirm({
+                title: "Delete this student?",
+                description:
+                  "This removes the student record. This can't be undone from here.",
+                confirmText: "Delete student",
+                isDestructive: true,
+                onConfirm: () =>
+                  run(() => deleteStudent(st.id).unwrap(), "Student deleted"),
+              }),
+          },
+        ]
+      : []),
+  ];
   const activeCount = Object.entries(filters).filter(
     ([, v]) => v && v !== "all",
   ).length;
@@ -198,7 +232,38 @@ export function StudentsTable({
               isFetching && !isLoading && "opacity-60",
             )}
           >
-            <div className="overflow-x-auto">
+            {/* Phones: row cards — every column's data visible, no side-scroll. */}
+            <RowCardList>
+              {isLoading ? (
+                <SkeletonRowCards />
+              ) : (
+                rows.map((st) => (
+                  <RowCard
+                    key={st.id}
+                    onOpen={() => router.push(`/admin/students/${st.id}`)}
+                    action={<ActionMenu items={menuItemsFor(st)} />}
+                  >
+                    <div className="truncate text-[15px] font-semibold text-ink">
+                      {st.fullName}
+                    </div>
+                    <div className="mt-0.5 truncate text-[12.5px] text-ink/55">
+                      {st.code} · {st.phone}
+                    </div>
+                    {!trainingId && st.training ? (
+                      <div className="mt-1 truncate text-[12.5px] text-ink/55">
+                        {st.training.name}
+                      </div>
+                    ) : null}
+                    <div className="mt-2.5">
+                      <StatusBadge status={st.status} />
+                    </div>
+                  </RowCard>
+                ))
+              )}
+            </RowCardList>
+
+            {/* ≥md: the full table. */}
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="border-b border-ink/10 text-[12px] font-semibold uppercase tracking-[0.06em] text-ink/50">
@@ -256,38 +321,7 @@ export function StudentsTable({
                         <StatusBadge status={st.status} />
                       </td>
                       <td className="px-6 py-3 text-right">
-                        <ActionMenu
-                          items={[
-                            {
-                              label: "View details",
-                              onClick: () =>
-                                router.push(`/admin/students/${st.id}`),
-                            },
-                            { label: "Edit", onClick: () => setEditing(st) },
-                            ...statusItems(st),
-                            ...(isAdmin
-                              ? [
-                                  {
-                                    label: "Delete",
-                                    variant: "danger" as const,
-                                    onClick: () =>
-                                      confirm({
-                                        title: "Delete this student?",
-                                        description:
-                                          "This removes the student record. This can't be undone from here.",
-                                        confirmText: "Delete student",
-                                        isDestructive: true,
-                                        onConfirm: () =>
-                                          run(
-                                            () => deleteStudent(st.id).unwrap(),
-                                            "Student deleted",
-                                          ),
-                                      }),
-                                  },
-                                ]
-                              : []),
-                          ]}
-                        />
+                        <ActionMenu items={menuItemsFor(st)} />
                       </td>
                     </tr>
                     ))

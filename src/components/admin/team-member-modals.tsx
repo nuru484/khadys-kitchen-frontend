@@ -141,7 +141,7 @@ export function AddMemberModal({
             ))}
           </Select>
         </div>
-        <div className="mt-1 flex justify-end gap-3">
+        <div className="mt-1 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end sm:gap-3 [&>*]:w-full sm:[&>*]:w-auto">
           <Button type="button" variant="outline" onClick={onClose}>
             Cancel
           </Button>
@@ -227,7 +227,7 @@ export function EditMemberModal({
           error={errors.phone?.message}
           {...register("phone")}
         />
-        <div className="mt-1 flex justify-end gap-3">
+        <div className="mt-1 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end sm:gap-3 [&>*]:w-full sm:[&>*]:w-auto">
           <Button type="button" variant="outline" onClick={onClose}>
             Cancel
           </Button>
@@ -283,7 +283,7 @@ export function ChangeRoleModal({
           ))}
         </Select>
       </div>
-      <div className="mt-5 flex justify-end gap-3">
+      <div className="mt-5 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end sm:gap-3 [&>*]:w-full sm:[&>*]:w-auto">
         <Button variant="outline" onClick={onClose}>
           Cancel
         </Button>

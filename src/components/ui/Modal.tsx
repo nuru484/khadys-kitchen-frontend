@@ -76,9 +76,11 @@ export function Modal({
 
   if (!open) return null;
 
+  // Phones get a bottom sheet (full width, slides up, safe-area padding);
+  // larger screens keep the centered card. One dialog, two postures.
   return createPortal(
     <div
-      className="fixed inset-0 z-[200] grid place-items-center p-[clamp(16px,4vw,44px)]"
+      className="fixed inset-0 z-[200] grid place-items-end sm:place-items-center sm:p-[clamp(16px,4vw,44px)]"
       style={{ background: "rgba(24,16,10,0.55)", animation: "kk-fadein .2s both" }}
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
@@ -90,9 +92,10 @@ export function Modal({
         aria-modal="true"
         aria-labelledby={labelledBy}
         tabIndex={-1}
-        style={{ animation: "kk-toastin .25s both" }}
         className={cn(
-          "max-h-[calc(100dvh-32px)] w-full max-w-[400px] overflow-y-auto rounded-[22px] bg-card p-5 outline-none sm:p-7",
+          "max-h-[92dvh] w-full overflow-y-auto rounded-t-[22px] bg-card p-5 pb-[max(20px,env(safe-area-inset-bottom))] outline-none",
+          "animate-[kk-sheetup_.28s_both]",
+          "sm:max-h-[calc(100dvh-32px)] sm:max-w-[400px] sm:animate-[kk-toastin_.25s_both] sm:rounded-[22px] sm:p-7",
           centered && "text-center",
           className,
         )}

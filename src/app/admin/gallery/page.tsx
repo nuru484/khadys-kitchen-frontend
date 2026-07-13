@@ -187,7 +187,9 @@ export default function GalleryPage() {
           <div
             aria-busy={isLoading}
             className={cn(
-              "grid grid-cols-2 gap-[clamp(12px,2vw,20px)] transition-opacity sm:grid-cols-3 xl:grid-cols-4",
+              // Single column on narrow phones — 2-up at <420px leaves no room
+              // for the caption/badge footer.
+              "grid grid-cols-1 gap-[clamp(12px,2vw,20px)] transition-opacity min-[420px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-4",
               isFetching && !isLoading && "opacity-60",
             )}
           >
@@ -217,7 +219,7 @@ export default function GalleryPage() {
                         className="object-cover transition-transform duration-[800ms] ease-[cubic-bezier(.16,.84,.28,1)] group-hover:scale-[1.06]"
                       />
                     </button>
-                    <div className="flex items-center justify-between gap-2 p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2 p-3">
                       <div className="min-w-0">
                         <div
                           title={p.caption ?? undefined}

@@ -150,7 +150,7 @@ export function GalleryPhotoModal({
           </label>
         ) : null}
 
-        <div className="flex flex-wrap justify-end gap-3">
+        <div className="flex flex-col-reverse gap-2.5 sm:flex-row sm:flex-wrap sm:justify-end sm:gap-3 [&>*]:w-full sm:[&>*]:w-auto">
           <Button type="button" variant="outline" onClick={onClose}>
             Cancel
           </Button>

@@ -6,11 +6,18 @@ import { Card, Pager } from "@/components/admin/ui";
 import { ActionMenu } from "@/components/admin/action-menu";
 import { EditCustomerModal } from "@/components/admin/edit-customer-modal";
 import { DateRangeFields, FilterBar } from "@/components/admin/filter-bar";
-import { DateTimeCell, SkeletonCells } from "@/components/admin/table-bits";
+import {
+  DateTimeCell,
+  RowCard,
+  RowCardList,
+  SkeletonCells,
+  SkeletonRowCards,
+} from "@/components/admin/table-bits";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/lib/format-money";
+import { formatDateTime } from "@/lib/format-date";
 import { useTableQuery } from "@/hooks/use-table-query";
 import type { ICustomer } from "@/types/customer.types";
 import { useGetCustomersQuery } from "@/redux/customers/customers-api";
@@ -53,6 +60,19 @@ export default function CustomersPage() {
   // Truly empty (not just searched to nothing): skip the toolbar entirely.
   const noDataAtAll =
     !isLoading && !isError && (meta?.total ?? 0) === 0 && !hasActiveFilters;
+
+  // One source for a row's actions — the desktop table and the mobile cards
+  // render the same menu.
+  const menuItemsFor = (c: ICustomer) => [
+    {
+      label: "View details",
+      onClick: () => router.push(`/admin/customers/${c.id}`),
+    },
+    {
+      label: "Edit details",
+      onClick: () => setEditing(c),
+    },
+  ];
 
   if (noDataAtAll) {
     return (
@@ -98,7 +118,44 @@ export default function CustomersPage() {
               isFetching && !isLoading && "opacity-60",
             )}
           >
-            <div className="overflow-x-auto">
+            {/* Phones: row cards — every column's data visible, no side-scroll. */}
+            <RowCardList>
+              {isLoading ? (
+                <SkeletonRowCards />
+              ) : (
+                rows.map((c) => (
+                  <RowCard
+                    key={c.id}
+                    onOpen={() => router.push(`/admin/customers/${c.id}`)}
+                    action={<ActionMenu items={menuItemsFor(c)} />}
+                  >
+                    <div className="truncate text-[15px] font-semibold text-ink">
+                      {c.fullName}
+                    </div>
+                    <div className="mt-0.5 truncate text-[12.5px] text-ink/55">
+                      {c.phone}
+                      {c.email ? ` · ${c.email}` : ""}
+                    </div>
+                    <div className="mt-2.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                      <span className="text-[13.5px] text-ink/70">
+                        <span className="font-semibold text-ink">
+                          {formatMoney(c.totalSpent)}
+                        </span>{" "}
+                        · {c.orderCount} order{c.orderCount === 1 ? "" : "s"}
+                      </span>
+                      <span className="text-[12.5px] text-ink/50">
+                        {c.lastOrderAt
+                          ? `Last ${formatDateTime(c.lastOrderAt)}`
+                          : "No orders yet"}
+                      </span>
+                    </div>
+                  </RowCard>
+                ))
+              )}
+            </RowCardList>
+
+            {/* ≥md: the full table. */}
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="border-b border-ink/10 text-[12px] font-semibold uppercase tracking-[0.06em] text-ink/50">
@@ -141,19 +198,7 @@ export default function CustomersPage() {
                         <DateTimeCell iso={c.lastOrderAt} />
                       </td>
                       <td className="px-6 py-3 text-right">
-                        <ActionMenu
-                          items={[
-                            {
-                              label: "View details",
-                              onClick: () =>
-                                router.push(`/admin/customers/${c.id}`),
-                            },
-                            {
-                              label: "Edit details",
-                              onClick: () => setEditing(c),
-                            },
-                          ]}
-                        />
+                        <ActionMenu items={menuItemsFor(c)} />
                       </td>
                     </tr>
                     ))

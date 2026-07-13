@@ -80,8 +80,10 @@ export function RevenueChart({
 
   return (
     <Card className="p-[clamp(18px,2.8vw,24px)]">
-      <div className="mb-5 flex items-baseline justify-between gap-3">
-        <h3 className="font-serif text-[19px] font-normal">
+      {/* flex-wrap: on narrow phones the total drops onto its own line instead
+          of squeezing the title into a broken three-line wrap. */}
+      <div className="mb-5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+        <h3 className="whitespace-nowrap font-serif text-[19px] font-normal">
           Received · {rangeNoun(range)}
         </h3>
         <span className="whitespace-nowrap font-serif text-[18px]">

@@ -79,7 +79,7 @@ export function EditCustomerModal({
           />
         </div>
       </div>
-      <div className="mt-5 flex justify-end gap-3">
+      <div className="mt-5 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end sm:gap-3 [&>*]:w-full sm:[&>*]:w-auto">
         <Button variant="outline" onClick={onClose}>
           Cancel
         </Button>

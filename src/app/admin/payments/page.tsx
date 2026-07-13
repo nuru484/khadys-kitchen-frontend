@@ -4,7 +4,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, Pager } from "@/components/admin/ui";
 import { DateRangeFields, FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
-import { DateTimeCell, SkeletonCells } from "@/components/admin/table-bits";
+import {
+  DateTimeCell,
+  RowCard,
+  RowCardList,
+  SkeletonCells,
+  SkeletonRowCards,
+} from "@/components/admin/table-bits";
 import { ActionMenu } from "@/components/admin/action-menu";
 import { useConfirm } from "@/components/admin/use-confirm";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -104,6 +110,27 @@ export default function PaymentsPage() {
     }
   };
 
+  // One source for a row's actions — the desktop table and the mobile cards
+  // render the same (admin-only refund) menu.
+  const menuItemsFor = (p: (typeof rows)[number]) =>
+    isAdmin && p.status === "SUCCESS"
+      ? [
+          {
+            label: "Reverse payment",
+            variant: "danger" as const,
+            onClick: () =>
+              confirm({
+                title: "Reverse this payment?",
+                description:
+                  "Paystack payments are refunded via Paystack; cash/MoMo are marked reversed. The owning order or application is re-credited.",
+                confirmText: "Reverse payment",
+                isDestructive: true,
+                onConfirm: () => doRefund(p),
+              }),
+          },
+        ]
+      : [];
+
   if (noDataAtAll) {
     return (
       <div style={{ animation: "kk-rise .5s both" }}>
@@ -185,7 +212,69 @@ export default function PaymentsPage() {
               isFetching && !isLoading && "opacity-60",
             )}
           >
-            <div className="overflow-x-auto">
+            {/* Phones: row cards — every column's data visible, no side-scroll. */}
+            <RowCardList>
+              {isLoading ? (
+                <SkeletonRowCards />
+              ) : (
+                rows.map((p) => (
+                  <RowCard
+                    key={p.id}
+                    onOpen={() => router.push(`/admin/payments/${p.id}`)}
+                    action={
+                      menuItemsFor(p).length > 0 ? (
+                        <ActionMenu items={menuItemsFor(p)} />
+                      ) : undefined
+                    }
+                  >
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+                      <span className="text-[15px] font-semibold text-ink">
+                        {formatMoney(p.amount, p.currency)}
+                      </span>
+                      <span className="text-[12.5px] text-ink/55">
+                        {titleCase(p.method)}
+                      </span>
+                    </div>
+                    <div className="mt-1 truncate text-[12px] text-ink/50">
+                      {p.reference}
+                    </div>
+                    {p.order ? (
+                      <div className="mt-2 flex min-w-0 items-center gap-2 text-[12.5px]">
+                        <span className="flex-none rounded-full bg-accent/10 px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-accent">
+                          Order
+                        </span>
+                        <span className="truncate text-ink/70">
+                          {p.order.code} · {p.order.fullName}
+                        </span>
+                      </div>
+                    ) : p.application ? (
+                      <div className="mt-2 flex min-w-0 items-center gap-2 text-[12.5px]">
+                        <span className="flex-none rounded-full bg-ink/[0.07] px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink/60">
+                          Training
+                        </span>
+                        <span className="truncate text-ink/70">
+                          {p.application.code} · {p.application.fullName}
+                        </span>
+                      </div>
+                    ) : null}
+                    <div className="mt-2.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                      <StatusBadge status={p.status} />
+                      <span className="text-[12.5px] text-ink/50">
+                        {p.paidAt ? formatDateTime(p.paidAt) : "—"}
+                      </span>
+                    </div>
+                    {p.reversedAt ? (
+                      <div className="mt-1.5 text-[11.5px] text-ink/45">
+                        Reversed {formatDateTime(p.reversedAt)}
+                      </div>
+                    ) : null}
+                  </RowCard>
+                ))
+              )}
+            </RowCardList>
+
+            {/* ≥md: the full table. */}
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="border-b border-ink/10 text-[12px] font-semibold uppercase tracking-[0.06em] text-ink/50">
@@ -290,24 +379,8 @@ export default function PaymentsPage() {
                         <td className="px-6 py-3 text-right">
                           {/* Row click covers viewing; the menu only appears
                               when there's a real action left (admin refund). */}
-                          {isAdmin && p.status === "SUCCESS" ? (
-                            <ActionMenu
-                              items={[
-                                {
-                                  label: "Reverse payment",
-                                  variant: "danger" as const,
-                                  onClick: () =>
-                                    confirm({
-                                      title: "Reverse this payment?",
-                                      description:
-                                        "Paystack payments are refunded via Paystack; cash/MoMo are marked reversed. The owning order or application is re-credited.",
-                                      confirmText: "Reverse payment",
-                                      isDestructive: true,
-                                      onConfirm: () => doRefund(p),
-                                    }),
-                                },
-                              ]}
-                            />
+                          {menuItemsFor(p).length > 0 ? (
+                            <ActionMenu items={menuItemsFor(p)} />
                           ) : null}
                         </td>
                       </tr>

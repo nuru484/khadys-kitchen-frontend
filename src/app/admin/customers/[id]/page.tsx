@@ -4,19 +4,16 @@ import { useState } from "react";
 import { BackLink } from "@/components/admin/back-link";
 import { useParams, useRouter } from "next/navigation";
 import { Card, StatTile } from "@/components/admin/ui";
+import { RowCard, RowCardList } from "@/components/admin/table-bits";
 import { EditCustomerModal } from "@/components/admin/edit-customer-modal";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { RippleLoader } from "@/components/ui/Loader";
-import { Modal } from "@/components/ui/Modal";
 import { PageActions } from "@/components/admin/page-actions";
-import { notify } from "@/lib/notify";
-import { extractApiError } from "@/lib/extract-api-error";
 import { formatMoney } from "@/lib/format-money";
 import { formatDate, formatDateTime, formatTime } from "@/lib/format-date";
 import { useGetCustomerByIdQuery } from "@/redux/customers/customers-api";
 import { useGetOrdersQuery } from "@/redux/orders/orders-api";
-import type { ICustomer } from "@/types/customer.types";
 
 export default function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -75,8 +72,9 @@ export default function CustomerDetailPage() {
         />
       </div>
 
-      {/* 1-up on phones, 2-up on tablets, 4-up from xl. */}
-      <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-2 xl:grid-cols-4">
+      {/* 2-up from small phones (single column wastes a screenful of scroll),
+          4-up from xl. */}
+      <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-[18px] xl:grid-cols-4">
         <StatTile label="Orders" value={String(customer.orderCount)} />
         <StatTile label="Total spent" value={formatMoney(customer.totalSpent)} />
         <StatTile
@@ -105,7 +103,37 @@ export default function CustomerDetailPage() {
         {orders.length === 0 ? (
           <p className="px-6 py-5 text-[14px] text-ink/50">No orders yet.</p>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            {/* Phones: row cards — every column's data visible, no side-scroll. */}
+            <RowCardList>
+              {orders.map((o) => (
+                <RowCard
+                  key={o.id}
+                  onOpen={() => router.push(`/admin/orders/${o.id}`)}
+                >
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+                    <span className="text-[14px] font-semibold text-ink">
+                      {o.code}
+                    </span>
+                    <span className="text-[14px] font-medium text-ink">
+                      {formatMoney(o.total, o.currency)}
+                    </span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+                    <span className="flex flex-wrap gap-1.5">
+                      <StatusBadge status={o.status} />
+                      <StatusBadge status={o.paymentStatus} />
+                    </span>
+                    <span className="text-[12.5px] text-ink/50">
+                      {formatDateTime(o.createdAt)}
+                    </span>
+                  </div>
+                </RowCard>
+              ))}
+            </RowCardList>
+
+            {/* ≥md: the full table. */}
+            <div className="hidden overflow-x-auto md:block">
             <table className="w-full border-collapse text-left">
               <thead>
                 <tr className="border-b border-ink/10 text-[12px] font-semibold uppercase tracking-[0.06em] text-ink/50">
@@ -142,7 +170,8 @@ export default function CustomerDetailPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )}
       </Card>
 

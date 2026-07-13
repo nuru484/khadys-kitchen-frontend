@@ -5,7 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, Pager } from "@/components/admin/ui";
 import { DateRangeFields, FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
-import { DateTimeCell, SkeletonCells } from "@/components/admin/table-bits";
+import {
+  DateTimeCell,
+  RowCard,
+  RowCardList,
+  SkeletonCells,
+  SkeletonRowCards,
+} from "@/components/admin/table-bits";
 import { ActionMenu } from "@/components/admin/action-menu";
 import { useConfirm } from "@/components/admin/use-confirm";
 import {
@@ -21,6 +27,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
+import { formatDate } from "@/lib/format-date";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useAuthRole } from "@/hooks/use-auth-role";
 import { useTableQuery } from "@/hooks/use-table-query";
@@ -107,6 +114,58 @@ export default function TeamPage() {
       });
     }
   };
+
+  // One source for a row's actions — the desktop table and the mobile cards
+  // render the same menu.
+  const menuItemsFor = (u: ITeamUser) => [
+    {
+      label: "View details",
+      onClick: () => router.push(`/admin/team/${u.id}`),
+    },
+    ...(canManage(u)
+      ? [
+          // Editing (photo, name, contact) lives on the profile detail page —
+          // reached via "View details". Everything else stays here.
+          {
+            label: "Change role",
+            onClick: () => setChangingRole(u),
+          },
+          {
+            label: u.isActive ? "Deactivate" : "Reactivate",
+            onClick: () =>
+              confirm({
+                title: u.isActive
+                  ? "Deactivate this account?"
+                  : "Reactivate this account?",
+                description: u.isActive
+                  ? "They will be signed out and unable to sign in until reactivated."
+                  : "They will be able to sign in again.",
+                confirmText: u.isActive ? "Deactivate" : "Reactivate",
+                isDestructive: u.isActive,
+                onConfirm: () =>
+                  run(
+                    () => setActive({ id: u.id, active: !u.isActive }).unwrap(),
+                    u.isActive ? "Account deactivated" : "Account reactivated",
+                  ),
+              }),
+          },
+          {
+            label: "Delete account",
+            variant: "danger" as const,
+            onClick: () =>
+              confirm({
+                title: "Delete this account?",
+                description:
+                  "They lose access immediately. This can't be undone from here.",
+                confirmText: "Delete account",
+                isDestructive: true,
+                onConfirm: () =>
+                  run(() => deleteUser(u.id).unwrap(), "Account deleted"),
+              }),
+          },
+        ]
+      : []),
+  ];
 
   if (noDataAtAll) {
     return (
@@ -199,7 +258,49 @@ export default function TeamPage() {
               isFetching && !isLoading && "opacity-60",
             )}
           >
-            <div className="overflow-x-auto">
+            {/* Phones: row cards — every column's data visible, no side-scroll. */}
+            <RowCardList>
+              {isLoading ? (
+                <SkeletonRowCards />
+              ) : (
+                rows.map((u) => (
+                  <RowCard
+                    key={u.id}
+                    onOpen={() => router.push(`/admin/team/${u.id}`)}
+                    action={<ActionMenu items={menuItemsFor(u)} />}
+                  >
+                    <div className="flex items-baseline gap-2">
+                      <span className="truncate text-[15px] font-semibold text-ink">
+                        {u.firstName} {u.lastName}
+                      </span>
+                      {me?.id === u.id ? (
+                        <span className="flex-none text-[12px] font-medium text-ink/45">
+                          (you)
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="mt-0.5 truncate text-[12.5px] text-ink/55">
+                      {u.email}
+                      {u.phone ? ` · ${u.phone}` : ""}
+                    </div>
+                    <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                      <StatusBadge status={u.role} label={roleLabel(u.role)} />
+                      <StatusBadge
+                        status={u.isActive ? "ACTIVE" : "SUSPENDED"}
+                        label={u.isActive ? "Active" : "Deactivated"}
+                      />
+                    </div>
+                    <div className="mt-2.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-[12.5px] text-ink/50">
+                      <span>2FA {u.twoFactorEnabled ? "on" : "off"}</span>
+                      <span>Joined {formatDate(u.createdAt)}</span>
+                    </div>
+                  </RowCard>
+                ))
+              )}
+            </RowCardList>
+
+            {/* ≥md: the full table. */}
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="border-b border-ink/10 text-[12px] font-semibold uppercase tracking-[0.06em] text-ink/50">
@@ -272,72 +373,7 @@ export default function TeamPage() {
                           <DateTimeCell iso={u.createdAt} />
                         </td>
                         <td className="px-6 py-3 text-right">
-                          <ActionMenu
-                            items={[
-                              {
-                                label: "View details",
-                                onClick: () =>
-                                  router.push(`/admin/team/${u.id}`),
-                              },
-                              ...(canManage(u)
-                                ? [
-                                    // Editing (photo, name, contact) lives on the
-                                    // profile detail page — reached via "View
-                                    // details". Everything else stays here.
-                                    {
-                                      label: "Change role",
-                                      onClick: () => setChangingRole(u),
-                                    },
-                                    {
-                                      label: u.isActive
-                                        ? "Deactivate"
-                                        : "Reactivate",
-                                      onClick: () =>
-                                        confirm({
-                                          title: u.isActive
-                                            ? "Deactivate this account?"
-                                            : "Reactivate this account?",
-                                          description: u.isActive
-                                            ? "They will be signed out and unable to sign in until reactivated."
-                                            : "They will be able to sign in again.",
-                                          confirmText: u.isActive
-                                            ? "Deactivate"
-                                            : "Reactivate",
-                                          isDestructive: u.isActive,
-                                          onConfirm: () =>
-                                            run(
-                                              () =>
-                                                setActive({
-                                                  id: u.id,
-                                                  active: !u.isActive,
-                                                }).unwrap(),
-                                              u.isActive
-                                                ? "Account deactivated"
-                                                : "Account reactivated",
-                                            ),
-                                        }),
-                                    },
-                                    {
-                                      label: "Delete account",
-                                      variant: "danger" as const,
-                                      onClick: () =>
-                                        confirm({
-                                          title: "Delete this account?",
-                                          description:
-                                            "They lose access immediately. This can't be undone from here.",
-                                          confirmText: "Delete account",
-                                          isDestructive: true,
-                                          onConfirm: () =>
-                                            run(
-                                              () => deleteUser(u.id).unwrap(),
-                                              "Account deleted",
-                                            ),
-                                        }),
-                                    },
-                                  ]
-                                : []),
-                            ]}
-                          />
+                          <ActionMenu items={menuItemsFor(u)} />
                         </td>
                       </tr>
                     ))

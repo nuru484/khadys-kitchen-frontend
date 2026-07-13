@@ -157,11 +157,12 @@ export function StatTile({
   sub?: string;
 }) {
   return (
-    <div className="min-w-0 rounded-[18px] border border-ink/10 bg-card px-[22px] py-5">
-      <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink/50">
+    // Compact padding + a lower size floor so tiles work 2-up on small phones.
+    <div className="min-w-0 rounded-[18px] border border-ink/10 bg-card px-[clamp(14px,2.5vw,22px)] py-[clamp(14px,2vw,20px)]">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink/50 sm:text-[12px]">
         {label}
       </div>
-      <div className="mt-2 font-serif text-[clamp(24px,2.6vw,30px)]">{value}</div>
+      <div className="mt-2 break-words font-serif text-[clamp(19px,5vw,30px)] sm:text-[clamp(22px,2.6vw,30px)]">{value}</div>
       {sub ? <div className="mt-0.5 text-[12.5px] text-ink/45">{sub}</div> : null}
       {note ? (
         <div className="mt-1 text-[12.5px] font-semibold text-accent">{note}</div>

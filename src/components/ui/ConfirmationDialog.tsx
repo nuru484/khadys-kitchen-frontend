@@ -106,7 +106,7 @@ export function ConfirmationDialog({
 
       {/* Same footprint as the shared Button `md` size, so dialogs read at the
           system's medium scale instead of oversized bespoke pills. */}
-      <div className="flex flex-wrap justify-center gap-2.5">
+      <div className="flex flex-col-reverse gap-2.5 sm:flex-row sm:flex-wrap sm:justify-center [&>*]:w-full sm:[&>*]:w-auto">
         <button
           type="button"
           onClick={confirm}

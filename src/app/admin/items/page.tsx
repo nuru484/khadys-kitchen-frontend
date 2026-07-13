@@ -4,7 +4,12 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Card, Pager } from "@/components/admin/ui";
 import { DateRangeFields, FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
-import { SkeletonCells } from "@/components/admin/table-bits";
+import {
+  RowCard,
+  RowCardList,
+  SkeletonCells,
+  SkeletonRowCards,
+} from "@/components/admin/table-bits";
 import { ActionMenu } from "@/components/admin/action-menu";
 import { useConfirm } from "@/components/admin/use-confirm";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -105,6 +110,46 @@ export default function ItemsPage() {
       },
     });
 
+  // One source for a row's actions — the desktop table and the mobile cards
+  // render the same menu.
+  const menuItemsFor = (p: (typeof rows)[number]) => [
+    {
+      label: "View details",
+      onClick: () => router.push(`/admin/items/${p.id}`),
+    },
+    {
+      label: "Edit",
+      onClick: () => router.push(`/admin/items/${p.id}/edit`),
+    },
+    ...(isAdmin
+      ? [
+          {
+            label: "Delete",
+            variant: "danger" as const,
+            onClick: () =>
+              confirm({
+                title: "Delete this product?",
+                description:
+                  "Past orders keep their own copy of the name and price. An item that's still on sale can't be deleted — take it off sale first.",
+                confirmText: "Delete product",
+                isDestructive: true,
+                onConfirm: async () => {
+                  try {
+                    await deleteProduct(p.id).unwrap();
+                    notify.success("Product deleted");
+                    void revalidatePublicPaths("/", "/shop");
+                  } catch (err) {
+                    notify.error("Couldn't delete", {
+                      description: extractApiError(err).message,
+                    });
+                  }
+                },
+              }),
+          },
+        ]
+      : []),
+  ];
+
   return (
     <div style={{ animation: "kk-rise .5s both" }}>
       <FilterBar
@@ -169,7 +214,76 @@ export default function ItemsPage() {
               isFetching && !isLoading && "opacity-60",
             )}
           >
-            <div className="overflow-x-auto">
+            {/* Phones: row cards — every column's data visible, no side-scroll. */}
+            <RowCardList>
+              {isLoading ? (
+                <SkeletonRowCards />
+              ) : (
+                rows.map((p) => (
+                  <RowCard
+                    key={p.id}
+                    onOpen={() => router.push(`/admin/items/${p.id}`)}
+                    action={<ActionMenu items={menuItemsFor(p)} />}
+                  >
+                    <div className="flex items-start gap-3">
+                      {p.image ? (
+                        <Image
+                          src={p.image}
+                          alt=""
+                          width={48}
+                          height={48}
+                          className="h-12 w-12 flex-none rounded-[10px] object-cover"
+                        />
+                      ) : (
+                        <span className="grid h-12 w-12 flex-none place-items-center rounded-[10px] bg-ink/[0.06] text-[16px]">
+                          🍞
+                        </span>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-[15px] font-semibold text-ink">
+                          {p.name}
+                        </div>
+                        <div className="mt-0.5 truncate text-[12.5px] text-ink/55">
+                          {p.unit}
+                        </div>
+                        <div className="mt-1 text-[13.5px] font-medium text-ink">
+                          {formatMoney(p.price, p.currency)}
+                          <span className="font-normal text-ink/55">
+                            {" "}
+                            ·{" "}
+                            {p.stock === null
+                              ? "Made to order"
+                              : `${String(p.stock)} in stock`}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggle(p.id, p.name, !p.isAvailable);
+                        }}
+                        className="cursor-pointer"
+                        title={p.isAvailable ? "Take off sale" : "Put on sale"}
+                      >
+                        <StatusBadge
+                          status={p.isAvailable ? "PUBLISHED" : "DRAFT"}
+                          label={p.isAvailable ? "Available" : "Unavailable"}
+                        />
+                      </button>
+                      {p.isFeatured ? (
+                        <StatusBadge status="UPCOMING" label="Featured" />
+                      ) : null}
+                    </div>
+                  </RowCard>
+                ))
+              )}
+            </RowCardList>
+
+            {/* ≥md: the full table. */}
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="border-b border-ink/10 text-[12px] font-semibold uppercase tracking-[0.06em] text-ink/50">
@@ -254,47 +368,7 @@ export default function ItemsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-3.5 text-right">
-                        <ActionMenu
-                          items={[
-                            {
-                              label: "View details",
-                              onClick: () => router.push(`/admin/items/${p.id}`),
-                            },
-                            {
-                              label: "Edit",
-                              onClick: () =>
-                                router.push(`/admin/items/${p.id}/edit`),
-                            },
-                            ...(isAdmin
-                              ? [
-                                  {
-                                    label: "Delete",
-                                    variant: "danger" as const,
-                                    onClick: () =>
-                                      confirm({
-                                        title: "Delete this product?",
-                                        description:
-                                          "Past orders keep their own copy of the name and price. An item that's still on sale can't be deleted — take it off sale first.",
-                                        confirmText: "Delete product",
-                                        isDestructive: true,
-                                        onConfirm: async () => {
-                                          try {
-                                            await deleteProduct(p.id).unwrap();
-                                            notify.success("Product deleted");
-                                            void revalidatePublicPaths("/", "/shop");
-                                          } catch (err) {
-                                            notify.error("Couldn't delete", {
-                                              description:
-                                                extractApiError(err).message,
-                                            });
-                                          }
-                                        },
-                                      }),
-                                  },
-                                ]
-                              : []),
-                          ]}
-                        />
+                        <ActionMenu items={menuItemsFor(p)} />
                       </td>
                     </tr>
                     ))

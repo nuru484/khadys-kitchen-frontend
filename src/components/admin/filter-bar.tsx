@@ -166,21 +166,25 @@ export function FilterBar({
 
   if (collapseFilters) {
     // Search stays inline at every width; only the filters live behind the
-    // toggle, so a five-filter toolbar never crowds the row.
+    // toggle, so a five-filter toolbar never crowds the row. On phones the
+    // persistent action gets its own full-width row (with the result count
+    // opposite) instead of floating awkwardly beside wrapped controls.
     return (
       <div className="mb-[18px]">
         <div className="flex flex-wrap items-center gap-3">
           {searchField}
           {toggle}
           {!open ? clearButton : null}
-          <div className="ml-auto flex items-center gap-3">
-            {resultLabel ? (
-              <span className="hidden whitespace-nowrap text-[13px] text-ink/55 sm:inline">
-                {resultLabel}
-              </span>
-            ) : null}
-            {action}
-          </div>
+          {action || resultLabel ? (
+            <div className="flex w-full items-center justify-end gap-3 sm:ml-auto sm:w-auto">
+              {resultLabel ? (
+                <span className="mr-auto whitespace-nowrap text-[13px] text-ink/55 sm:mr-0">
+                  {resultLabel}
+                </span>
+              ) : null}
+              {action}
+            </div>
+          ) : null}
         </div>
         <div id="admin-filters" className={cn("mt-3", open ? panelGrid : "hidden")}>
           {children}
@@ -192,11 +196,11 @@ export function FilterBar({
 
   return (
     <div className="mb-[18px]">
-      {/* Mobile / tablet: collapse the toolbar behind a toggle. The row wraps so
-          a persistent action drops onto its own line on very narrow screens
+      {/* Mobile / tablet: collapse the toolbar behind a toggle. A persistent
+          action wraps onto its own full-width row on very narrow screens
           (e.g. a Galaxy Fold) instead of squeezing the button text. */}
-      <div className="flex flex-wrap items-center justify-between gap-3 lg:hidden">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3 lg:hidden">
+        <div className="mr-auto flex items-center gap-3">
           {toggle}
           {!open ? clearButton : null}
         </div>
