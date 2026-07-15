@@ -165,8 +165,8 @@ export function TrainingsCatalogue({
   return (
     <>
       <div className="mb-[clamp(22px,3vw,32px)] py-[18px]">
-        {/* Mobile / tablet: the toolbar collapses behind one toggle. */}
-        <div className="flex items-center justify-between gap-3 lg:hidden">
+        {/* The toolbar collapses behind one toggle at every screen size. */}
+        <div className="flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={() => setFiltersOpen((open) => !open)}
@@ -209,12 +209,13 @@ export function TrainingsCatalogue({
         <div
           id="trainings-filters"
           className={cn(
-            "mt-3 gap-3 lg:mt-0",
-            filtersOpen ? "grid grid-cols-2" : "hidden",
-            "lg:flex lg:flex-wrap lg:items-end lg:gap-2.5",
+            "mt-3 gap-3",
+            filtersOpen
+              ? "grid grid-cols-2 lg:flex lg:flex-wrap lg:items-end lg:gap-2.5"
+              : "hidden",
           )}
         >
-          <div className="relative col-span-2 w-full lg:col-span-1 lg:w-auto lg:min-w-[180px] lg:max-w-[340px] lg:flex-[1_1_200px]">
+          <div className="relative col-span-2 w-full lg:col-span-1 lg:min-w-0 lg:flex-[1.5_1_0%]">
             <span
               aria-hidden="true"
               className="pointer-events-none absolute left-[16px] top-1/2 -translate-y-1/2 text-[15px] text-ink/45"
@@ -235,6 +236,7 @@ export function TrainingsCatalogue({
             value={status}
             active={status !== "all"}
             onChange={pickStatus}
+            className="lg:min-w-0 lg:flex-[1_1_0%]"
           >
             <option value="all">All classes</option>
             <option value="open">Open for applications</option>
@@ -246,6 +248,7 @@ export function TrainingsCatalogue({
             value={category}
             active={category !== "all"}
             onChange={pickCategory}
+            className="lg:min-w-0 lg:flex-[1_1_0%]"
           >
             <option value="all">In-person &amp; online</option>
             {TRAINING_CATEGORIES.map((c) => (
@@ -255,7 +258,7 @@ export function TrainingsCatalogue({
             ))}
           </LabeledSelect>
 
-          <label className="grid gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink/55">
+          <label className="grid gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink/55 lg:min-w-0 lg:flex-[1_1_0%]">
             Starts from
             <DateInput
               value={startsFrom}
@@ -263,7 +266,7 @@ export function TrainingsCatalogue({
               placeholder="Any date"
               placeholderClassName="normal-case tracking-normal font-normal text-[14px]"
               className={cn(
-                "w-full min-w-0 cursor-pointer rounded-[10px] border-[1.5px] bg-transparent px-3 py-[9px] font-sans text-[14px] font-medium normal-case tracking-normal text-ink outline-none transition-colors focus:border-accent lg:w-auto",
+                "w-full min-w-0 cursor-pointer rounded-[10px] border-[1.5px] bg-transparent px-3 py-[9px] font-sans text-[14px] font-medium normal-case tracking-normal text-ink outline-none transition-colors focus:border-accent",
                 startsFrom ? "border-accent text-accent" : "border-ink/20",
               )}
             />
@@ -274,6 +277,7 @@ export function TrainingsCatalogue({
             value={sort}
             active={sort !== "featured"}
             onChange={pickSort}
+            className="lg:min-w-0 lg:flex-[1_1_0%]"
           >
             <option value="featured">Featured first</option>
             <option value="soonest">Soonest start</option>
@@ -289,10 +293,6 @@ export function TrainingsCatalogue({
               Clear filters
             </button>
           ) : null}
-
-          <span className="hidden text-[13.5px] text-ink/55 lg:ml-auto lg:block lg:self-center">
-            {resultCount}
-          </span>
         </div>
       </div>
 
