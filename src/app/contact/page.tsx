@@ -16,7 +16,6 @@ export const metadata = pageMetadata({
 
 const NAV_LINKS = [
   { label: "Home", href: routes.home },
-  { label: "Shop", href: routes.shop },
   { label: "Trainings", href: routes.trainings },
 ];
 
@@ -25,7 +24,7 @@ export default function ContactPage() {
     <div className="flex min-h-screen flex-col overflow-x-clip bg-cream text-ink">
       <SiteHeader
         navLinks={NAV_LINKS}
-        cta={{ label: "Order now", href: routes.shop }}
+        cta={{ label: "Trainings", href: routes.trainings }}
         mobileMenu
       />
       <main className="flex-1">
@@ -33,7 +32,7 @@ export default function ContactPage() {
         <ContactChannels />
         <ContactForm />
       </main>
-      <SiteFooter cta={{ label: "Order custom bakes", href: routes.shop }} />
+      <SiteFooter cta={{ label: "Explore our trainings", href: routes.trainings }} />
     </div>
   );
 }

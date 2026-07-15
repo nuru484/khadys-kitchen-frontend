@@ -21,7 +21,6 @@ export const metadata = pageMetadata({
 
 const NAV_LINKS = [
   { label: "← Home", href: routes.home },
-  { label: "Shop", href: routes.shop },
   { label: "Contact", href: routes.contact },
 ];
 
@@ -58,7 +57,7 @@ export default async function TrainingsPage() {
           <TrainingsCatalogue initialTrainings={initialTrainings} />
         </section>
       </main>
-      <SiteFooter cta={{ label: "Order custom bakes", href: routes.shop }} />
+      <SiteFooter cta={{ label: "Explore our trainings", href: routes.trainings }} />
     </div>
   );
 }

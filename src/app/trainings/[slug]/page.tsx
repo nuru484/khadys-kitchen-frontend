@@ -15,7 +15,6 @@ import type { ITraining } from "@/types/training.types";
 
 const NAV_LINKS = [
   { label: "← All trainings", href: routes.trainings },
-  { label: "Shop", href: routes.shop },
   { label: "Contact", href: routes.contact },
 ];
 
@@ -102,7 +101,7 @@ export default async function TrainingPage({
           <TrainingDetail slug={slug} initialTraining={initialTraining} />
         )}
       </main>
-      <SiteFooter cta={{ label: "Order custom bakes", href: routes.shop }} />
+      <SiteFooter cta={{ label: "Explore our trainings", href: routes.trainings }} />
     </div>
   );
 }

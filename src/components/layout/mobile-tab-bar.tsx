@@ -11,9 +11,6 @@ const ICONS = {
   home: (
     <path d="M3 10.5 12 3l9 7.5M5.5 9v11h13V9M9.5 20v-6h5v6" />
   ),
-  shop: (
-    <path d="M5 8h14l-1 12H6L5 8zm3 0V6a4 4 0 0 1 8 0v2" />
-  ),
   classes: (
     // A graduation cap — the bake school.
     <path d="M2.5 9.5 12 5l9.5 4.5L12 14 2.5 9.5zm4 2.8V16c0 1.7 2.5 3 5.5 3s5.5-1.3 5.5-3v-3.7M21 10v4.5" />
@@ -28,7 +25,6 @@ const ICONS = {
 
 const TABS = [
   { label: "Home", href: routes.home, icon: ICONS.home, exact: true },
-  { label: "Shop", href: routes.shop, icon: ICONS.shop },
   { label: "Classes", href: routes.trainings, icon: ICONS.classes },
   { label: "Gallery", href: routes.gallery, icon: ICONS.gallery },
   { label: "Contact", href: routes.contact, icon: ICONS.contact },
@@ -36,15 +32,15 @@ const TABS = [
 
 /**
  * Facebook-style bottom tab navigation, mobile only (< 900px — the same
- * breakpoint where the header nav collapses). The five canonical
- * destinations; contextual extras (Track order, the About anchor, promo
- * CTAs) stay in the header's overlay menu.
+ * breakpoint where the header nav collapses). The canonical destinations;
+ * contextual extras (the About anchor, promo CTAs) stay in the header's
+ * overlay menu.
  *
  * The bar auto-hides: scrolling down slides it away (reclaiming the height
- * on content-dense pages like the shop, where the header already stacks),
- * scrolling up — or being near the top — brings it back. Its current height
- * is published as --kk-tab-offset so anything else pinned to the bottom
- * (the trainings apply bar) can ride along instead of floating over a gap.
+ * on content-dense pages, where the header already stacks), scrolling up —
+ * or being near the top — brings it back. Its current height is published
+ * as --kk-tab-offset so anything else pinned to the bottom (the trainings
+ * apply bar) can ride along instead of floating over a gap.
  */
 export function MobileTabBar() {
   const pathname = usePathname();
@@ -75,7 +71,7 @@ export function MobileTabBar() {
     <nav
       aria-label="Primary"
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 grid h-[60px] grid-cols-5 border-t border-ink/10 bg-cream/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-[8px] transition-transform duration-300 ease-out min-[900px]:hidden",
+        "fixed inset-x-0 bottom-0 z-50 grid h-[60px] grid-cols-4 border-t border-ink/10 bg-cream/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-[8px] transition-transform duration-300 ease-out min-[900px]:hidden",
         hidden && "translate-y-full",
       )}
     >

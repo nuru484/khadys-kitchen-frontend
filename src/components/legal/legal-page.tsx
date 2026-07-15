@@ -5,7 +5,6 @@ import { routes } from "@/lib/routes";
 
 const NAV_LINKS = [
   { label: "Home", href: routes.home },
-  { label: "Shop", href: routes.shop },
   { label: "Trainings", href: routes.trainings },
   { label: "Contact", href: routes.contact },
 ];
@@ -39,7 +38,7 @@ export function LegalPage({
     <div className="flex min-h-screen flex-col overflow-x-clip bg-cream text-ink">
       <SiteHeader
         navLinks={NAV_LINKS}
-        cta={{ label: "Order now", href: routes.shop }}
+        cta={{ label: "Trainings", href: routes.trainings }}
         mobileMenu
       />
       <main className="flex-1">
@@ -78,7 +77,7 @@ export function LegalPage({
           </div>
         </article>
       </main>
-      <SiteFooter cta={{ label: "Order custom bakes", href: routes.shop }} />
+      <SiteFooter cta={{ label: "Explore our trainings", href: routes.trainings }} />
     </div>
   );
 }

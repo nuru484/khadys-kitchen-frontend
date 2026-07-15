@@ -6,8 +6,6 @@ import { siteConfig } from "@/lib/site";
 
 const FOOTER_LINKS = [
   { label: "Home", href: routes.home },
-  { label: "Shop", href: routes.shop },
-  { label: "Track your order", href: routes.shopTrack },
   { label: "Trainings", href: routes.trainings },
   { label: "Gallery", href: routes.gallery },
   { label: "Contact", href: routes.contact },
@@ -26,8 +24,8 @@ export function SiteFooter({ cta }: SiteFooterProps) {
             Come while it&rsquo;s warm.
           </h2>
           <p className="mb-8 max-w-[42ch] text-[17px] leading-[1.7] text-cream/70">
-            Order ahead for pickup, or take your chances at the counter - the
-            croissants rarely make it past ten.
+            Swing by the kitchen in Kumasi, or join one of our baking classes -
+            the ovens are always on.
           </p>
           <Link
             href={cta.href}

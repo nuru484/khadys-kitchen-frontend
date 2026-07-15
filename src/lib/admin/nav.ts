@@ -20,8 +20,8 @@ export const isNavGroup = (entry: AdminNavEntry): entry is AdminNavGroup =>
 
 /**
  * Admin navigation, ordered by importance: the live Bake School surfaces
- * first (grouped under Trainings), then the shop, then administration.
- * Profile lives in the sidebar's account menu, not here.
+ * first (grouped under Trainings), then administration. The shop surfaces are
+ * currently hidden (see below). Profile lives in the sidebar's account menu.
  */
 export const ADMIN_NAV_ITEMS: AdminNavEntry[] = [
   { label: "Dashboard", href: "/admin", isActive: (p) => p === "/admin" },
@@ -33,9 +33,9 @@ export const ADMIN_NAV_ITEMS: AdminNavEntry[] = [
       { label: "Students", href: "/admin/students", isActive: (p) => p.startsWith("/admin/students") },
     ],
   },
-  { label: "Orders", href: "/admin/orders", isActive: (p) => p.startsWith("/admin/orders") },
-  { label: "Customers", href: "/admin/customers", isActive: (p) => p.startsWith("/admin/customers") },
-  { label: "Shop items", href: "/admin/items", isActive: (p) => p.startsWith("/admin/items") },
+  // Shop surfaces (Orders, Customers, Shop items) are intentionally hidden from
+  // the sidebar for now — the pages still exist and work when navigated to
+  // directly, but the shop is not surfaced anywhere in the admin nav.
   { label: "Payments", href: "/admin/payments", isActive: (p) => p.startsWith("/admin/payments") },
   { label: "Gallery", href: "/admin/gallery", isActive: (p) => p.startsWith("/admin/gallery") },
   { label: "Website", href: "/admin/website", isActive: (p) => p.startsWith("/admin/website"), adminOnly: true },

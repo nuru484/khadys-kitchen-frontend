@@ -20,7 +20,6 @@ export const metadata = pageMetadata({
 
 const NAV_LINKS = [
   { label: "← Home", href: routes.home },
-  { label: "Shop", href: routes.shop },
   { label: "Trainings", href: routes.trainings },
   { label: "Contact", href: routes.contact },
 ];
@@ -33,7 +32,7 @@ export default async function GalleryPage() {
     <div className="min-h-screen overflow-x-clip bg-cream text-ink">
       <SiteHeader
         navLinks={NAV_LINKS}
-        cta={{ label: "Order custom bakes", href: routes.shop }}
+        cta={{ label: "Trainings", href: routes.trainings }}
         mobileMenu
       />
       <main>
@@ -58,7 +57,7 @@ export default async function GalleryPage() {
           <GalleryShowcase initialImages={initialImages} />
         </section>
       </main>
-      <SiteFooter cta={{ label: "Order custom bakes", href: routes.shop }} />
+      <SiteFooter cta={{ label: "Explore our trainings", href: routes.trainings }} />
     </div>
   );
 }
