@@ -16,7 +16,6 @@ import { TextField } from "@/components/ui/TextField";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { notify } from "@/lib/notify";
-import { revalidatePublicPaths } from "@/lib/revalidate-public";
 import { extractApiError } from "@/lib/extract-api-error";
 import {
   useCreateTrainingMutation,
@@ -267,12 +266,10 @@ export function TrainingForm({ training }: { training?: ITraining }) {
       if (training) {
         await updateTraining({ id: training.id, body, files }).unwrap();
         notify.success("Training updated");
-        void revalidatePublicPaths("/", "/trainings");
         router.push(`/admin/classes/${training.id}`);
       } else {
         const res = await createTraining({ body, files }).unwrap();
         notify.success("Training created");
-        void revalidatePublicPaths("/", "/trainings");
         router.push(`/admin/classes/${res.data.id}`);
       }
     } catch (err) {

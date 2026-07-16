@@ -8,7 +8,6 @@ import { useConfirm } from "@/components/admin/use-confirm";
 import { Button } from "@/components/ui/Button";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { notify } from "@/lib/notify";
-import { revalidatePublicPaths } from "@/lib/revalidate-public";
 import { extractApiError } from "@/lib/extract-api-error";
 import { useAuthRole } from "@/hooks/use-auth-role";
 import {
@@ -52,7 +51,6 @@ export default function EditItemPage() {
     try {
       await deleteProduct(id).unwrap();
       notify.success("Product deleted");
-      void revalidatePublicPaths("/", "/shop");
       router.push("/admin/items");
     } catch (err) {
       // The backend refuses deleting an item that's still on sale.

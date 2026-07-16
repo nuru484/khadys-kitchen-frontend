@@ -19,7 +19,6 @@ import { Modal } from "@/components/ui/Modal";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils";
 import { notify } from "@/lib/notify";
-import { revalidatePublicPaths } from "@/lib/revalidate-public";
 import { extractApiError } from "@/lib/extract-api-error";
 import { formatDate } from "@/lib/format-date";
 import { useAuthRole } from "@/hooks/use-auth-role";
@@ -95,7 +94,6 @@ export default function GalleryPage() {
         try {
           await setPublished({ id: photo.id, isPublished: next }).unwrap();
           notify.success(next ? "Photo published" : "Photo hidden");
-          void revalidatePublicPaths("/gallery");
         } catch (err) {
           notify.error("Couldn't update photo", {
             description: extractApiError(err).message,
@@ -117,7 +115,6 @@ export default function GalleryPage() {
         try {
           await deletePhoto(photo.id).unwrap();
           notify.success("Photo deleted");
-          void revalidatePublicPaths("/gallery");
         } catch (err) {
           notify.error("Couldn't delete", {
             description: extractApiError(err).message,

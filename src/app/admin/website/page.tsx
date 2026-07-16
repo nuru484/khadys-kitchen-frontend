@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { notify } from "@/lib/notify";
-import { revalidatePublicPaths } from "@/lib/revalidate-public";
 import { extractApiError } from "@/lib/extract-api-error";
 import { formatDateTime } from "@/lib/format-date";
 import {
@@ -102,7 +101,6 @@ export default function WebsitePage() {
         image: photo.file ?? undefined,
       }).unwrap();
       notify.success("About section updated");
-      void revalidatePublicPaths("/");
       setPhoto({ cleared: false, file: null });
       setEditing(false);
     } catch (err) {

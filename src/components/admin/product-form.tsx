@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { TextField } from "@/components/ui/TextField";
 import { notify } from "@/lib/notify";
-import { revalidatePublicPaths } from "@/lib/revalidate-public";
 import { extractApiError } from "@/lib/extract-api-error";
 import {
   useCreateProductMutation,
@@ -112,7 +111,6 @@ export function ProductForm({ product }: { product?: IProduct }) {
         await createProduct({ body: payload, photo: file }).unwrap();
         notify.success("Product created");
       }
-      void revalidatePublicPaths("/", "/shop");
       router.push("/admin/items");
     } catch (err) {
       notify.error(

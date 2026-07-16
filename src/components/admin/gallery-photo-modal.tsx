@@ -5,7 +5,6 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { FileUploadField } from "@/components/admin/file-upload-field";
 import { notify } from "@/lib/notify";
-import { revalidatePublicPaths } from "@/lib/revalidate-public";
 import { extractApiError } from "@/lib/extract-api-error";
 import {
   useCreateGalleryImageMutation,
@@ -73,7 +72,6 @@ export function GalleryPhotoModal({
           },
           photo: staged.file,
         }).unwrap();
-        void revalidatePublicPaths("/gallery");
         notify.success(
           publishNow ? "Photo added and published" : "Photo added",
           publishNow
@@ -88,7 +86,6 @@ export function GalleryPhotoModal({
           photo: staged.file ?? undefined,
         }).unwrap();
         notify.success("Photo updated");
-        void revalidatePublicPaths("/gallery");
       }
       onClose();
     } catch (err) {

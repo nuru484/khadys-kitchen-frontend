@@ -19,7 +19,6 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
 import { notify } from "@/lib/notify";
-import { revalidatePublicPaths } from "@/lib/revalidate-public";
 import { extractApiError } from "@/lib/extract-api-error";
 import { formatMoney } from "@/lib/format-money";
 import { useAuthRole } from "@/hooks/use-auth-role";
@@ -102,7 +101,6 @@ export default function ItemsPage() {
         try {
           await setAvailability({ id, isAvailable: next }).unwrap();
           notify.success(next ? "Item is on sale" : "Item taken off sale");
-          void revalidatePublicPaths("/", "/shop");
         } catch (err) {
           notify.error("Couldn't update availability", {
             description: extractApiError(err).message,
@@ -138,7 +136,6 @@ export default function ItemsPage() {
                   try {
                     await deleteProduct(p.id).unwrap();
                     notify.success("Product deleted");
-                    void revalidatePublicPaths("/", "/shop");
                   } catch (err) {
                     notify.error("Couldn't delete", {
                       description: extractApiError(err).message,

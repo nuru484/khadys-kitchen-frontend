@@ -3,6 +3,7 @@
 // available. Mirrors dms-frontend's sitemap fetcher: responses are cached with
 // a revalidate window and failures are swallowed so a backend hiccup never
 // breaks a sitemap or a page render.
+import { CACHE_TAGS, type CacheTag } from "@/lib/cache-tags";
 import type { IAboutContent } from "@/types/about.types";
 import type { IGalleryImage } from "@/types/gallery.types";
 import type { IProduct } from "@/types/product.types";
@@ -34,6 +35,7 @@ export type PublicLookup<T> =
 
 async function lookupJson<T>(
   path: string,
+  tag: CacheTag | null,
   init?: RequestInit,
 ): Promise<PublicLookup<T>> {
   if (!serverUri) return { kind: "error" };
@@ -41,8 +43,11 @@ async function lookupJson<T>(
     const response = await fetch(`${serverUri}/api/v1${path}`, {
       headers: { "Content-Type": "application/json" },
       // An explicit cache mode (e.g. no-store) replaces the revalidate window —
-      // Next rejects a request that specifies both.
-      ...(init?.cache ? {} : { next: { revalidate: REVALIDATE_SECONDS } }),
+      // Next rejects a request that specifies both. Tagged entries are purged
+      // on-demand by the backend after content writes.
+      ...(init?.cache || !tag
+        ? {}
+        : { next: { revalidate: REVALIDATE_SECONDS, tags: [tag] } }),
       ...init,
     });
     if (response.status === 404) return { kind: "not-found" };
@@ -60,12 +65,12 @@ async function lookupJson<T>(
   }
 }
 
-async function fetchJson<T>(path: string): Promise<T | null> {
+async function fetchJson<T>(path: string, tag: CacheTag): Promise<T | null> {
   if (!serverUri) return null;
   try {
     const response = await fetch(`${serverUri}/api/v1${path}`, {
       headers: { "Content-Type": "application/json" },
-      next: { revalidate: REVALIDATE_SECONDS },
+      next: { revalidate: REVALIDATE_SECONDS, tags: [tag] },
     });
     if (!response.ok) {
       console.error(`Public API: ${path} responded ${String(response.status)}`);
@@ -85,6 +90,7 @@ async function fetchJson<T>(path: string): Promise<T | null> {
 export async function fetchPublicProducts(): Promise<PublicProduct[]> {
   const json = await fetchJson<{ data?: PublicProduct[] }>(
     "/products?limit=100",
+    CACHE_TAGS.PRODUCTS,
   );
   return Array.isArray(json?.data) ? json.data : [];
 }
@@ -95,7 +101,7 @@ export async function fetchPublicProducts(): Promise<PublicProduct[]> {
  * this as its initial data and RTK Query hydrates/refetches over it.
  */
 export async function fetchPublicProductList(): Promise<IProduct[]> {
-  const json = await fetchJson<{ data?: IProduct[] }>("/products?limit=100");
+  const json = await fetchJson<{ data?: IProduct[] }>("/products?limit=100", CACHE_TAGS.PRODUCTS);
   return Array.isArray(json?.data) ? json.data : [];
 }
 
@@ -107,7 +113,10 @@ export async function fetchPublicProductList(): Promise<IProduct[]> {
 export async function lookupPublicProduct(
   slug: string,
 ): Promise<PublicLookup<IProduct>> {
-  return lookupJson<IProduct>(`/products/${encodeURIComponent(slug)}`);
+  return lookupJson<IProduct>(
+    `/products/${encodeURIComponent(slug)}`,
+    CACHE_TAGS.PRODUCTS,
+  );
 }
 
 /** The public training DTO fields the SEO surfaces care about. */
@@ -124,6 +133,7 @@ export interface PublicTraining {
 export async function fetchPublicTrainings(): Promise<PublicTraining[]> {
   const json = await fetchJson<{ data?: PublicTraining[] }>(
     "/trainings?limit=100",
+    CACHE_TAGS.TRAININGS,
   );
   return Array.isArray(json?.data) ? json.data : [];
 }
@@ -134,7 +144,10 @@ export async function fetchPublicTrainings(): Promise<PublicTraining[]> {
  * initial data and RTK Query hydrates/refetches over it.
  */
 export async function fetchPublicTrainingList(): Promise<ITraining[]> {
-  const json = await fetchJson<{ data?: ITraining[] }>("/trainings?limit=100");
+  const json = await fetchJson<{ data?: ITraining[] }>(
+    "/trainings?limit=100",
+    CACHE_TAGS.TRAININGS,
+  );
   return Array.isArray(json?.data) ? json.data : [];
 }
 
@@ -144,6 +157,7 @@ export async function fetchPublicTrainingList(): Promise<ITraining[]> {
 export async function fetchFeaturedProducts(): Promise<IProduct[]> {
   const json = await fetchJson<{ data?: IProduct[] }>(
     "/products?featured=true&limit=3",
+    CACHE_TAGS.PRODUCTS,
   );
   return Array.isArray(json?.data) ? json.data : [];
 }
@@ -152,6 +166,7 @@ export async function fetchFeaturedProducts(): Promise<IProduct[]> {
 export async function fetchFeaturedTrainings(): Promise<ITraining[]> {
   const json = await fetchJson<{ data?: ITraining[] }>(
     "/trainings?featured=true&limit=3",
+    CACHE_TAGS.TRAININGS,
   );
   return Array.isArray(json?.data) ? json.data : [];
 }
@@ -159,7 +174,7 @@ export async function fetchFeaturedTrainings(): Promise<ITraining[]> {
 /** The editable "Our Story" content (null when never saved — the section's
  * static defaults apply). Server-side so the band renders without a flash. */
 export async function fetchPublicAbout(): Promise<IAboutContent | null> {
-  const json = await fetchJson<{ data?: IAboutContent | null }>("/about");
+  const json = await fetchJson<{ data?: IAboutContent | null }>("/about", CACHE_TAGS.ABOUT);
   return json?.data ?? null;
 }
 
@@ -171,6 +186,7 @@ export async function fetchPublicAbout(): Promise<IAboutContent | null> {
 export async function fetchPublicGalleryList(): Promise<IGalleryImage[]> {
   const json = await fetchJson<{ data?: IGalleryImage[] }>(
     "/gallery?limit=100",
+    CACHE_TAGS.GALLERY,
   );
   return Array.isArray(json?.data) ? json.data : [];
 }
@@ -181,7 +197,10 @@ export async function fetchPublicGalleryList(): Promise<IGalleryImage[]> {
 export async function lookupPublicTraining(
   slug: string,
 ): Promise<PublicLookup<ITraining>> {
-  return lookupJson<ITraining>(`/trainings/${encodeURIComponent(slug)}`);
+  return lookupJson<ITraining>(
+    `/trainings/${encodeURIComponent(slug)}`,
+    CACHE_TAGS.TRAININGS,
+  );
 }
 
 /** The public application DTO (`GET /applications/:code`) — enough for the
@@ -212,6 +231,7 @@ export async function lookupApplicationByCode(
 ): Promise<PublicLookup<PublicApplication>> {
   return lookupJson<PublicApplication>(
     `/applications/${encodeURIComponent(code)}`,
+    null,
     { cache: "no-store" },
   );
 }
