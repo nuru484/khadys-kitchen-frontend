@@ -6,6 +6,7 @@ import { ApplicationStatus } from "@/components/trainings/application-status";
 import { TrainingDetail } from "@/components/trainings/training-detail";
 import { EmptyState } from "@/components/ui/EmptyState";
 import {
+  fetchPublicTrainings,
   lookupApplicationByCode,
   lookupPublicTraining,
 } from "@/lib/public-api";
@@ -21,6 +22,17 @@ import type { ITraining } from "@/types/training.types";
  * can never collide with the pattern.
  */
 const APPLICATION_CODE = /^KK-A[0-9A-Z]{4,}$/i;
+
+/**
+ * Prerender every published class so the detail pages ship as static HTML
+ * (revalidate window + TRAININGS tag purge keep them fresh). Unknown slugs
+ * still render on demand: new classes fill the cache on first hit, and
+ * receipt-code URLs stay dynamic because their lookup is no-store.
+ */
+export async function generateStaticParams() {
+  const trainings = await fetchPublicTrainings();
+  return trainings.map((training) => ({ slug: training.slug }));
+}
 
 export async function generateMetadata({
   params,

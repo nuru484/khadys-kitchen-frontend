@@ -11,7 +11,9 @@ import type { ITraining } from "@/types/training.types";
 
 const serverUri = process.env.NEXT_PUBLIC_SERVER_URI;
 
-const REVALIDATE_SECONDS = 3600;
+// 6h window: content is admin-managed and the backend purges the cache tags
+// on every write, so the timer is only a fallback against missed purges.
+const REVALIDATE_SECONDS = 21600;
 
 /** The public product DTO fields the SEO surfaces care about. */
 export interface PublicProduct {

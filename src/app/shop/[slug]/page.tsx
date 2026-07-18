@@ -2,13 +2,21 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductDetail } from "@/components/shop/product-detail";
 import { pageMetadata } from "@/lib/seo";
-import { lookupPublicProduct } from "@/lib/public-api";
+import { fetchPublicProducts, lookupPublicProduct } from "@/lib/public-api";
 import { shopProduct } from "@/lib/routes";
 
-// The catalogue is dynamic (admin-managed), so the real product is fetched at
-// request time (cached with a revalidate window). The same lookup feeds the
-// metadata and the page; Next memoizes the identical fetch within a request, so
-// this is one round-trip.
+// The same lookup feeds the metadata and the page; Next memoizes the identical
+// fetch within a request, so this is one round-trip.
+
+/**
+ * Prerender every published product so the detail pages ship as static HTML
+ * (revalidate window + PRODUCTS tag purge keep them fresh). Unknown slugs
+ * still render on demand and fill the cache on first hit.
+ */
+export async function generateStaticParams() {
+  const products = await fetchPublicProducts();
+  return products.map((product) => ({ slug: product.slug }));
+}
 
 export async function generateMetadata({
   params,
