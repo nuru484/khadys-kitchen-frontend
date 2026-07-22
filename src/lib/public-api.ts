@@ -165,10 +165,11 @@ export async function fetchFeaturedProducts(): Promise<IProduct[]> {
   return Array.isArray(json?.data) ? json.data : [];
 }
 
-/** The home page's featured classes (same treatment as featured products). */
+/** The home page's featured classes (same treatment as featured products):
+ * up to three on-site + three online, split into rows by the section. */
 export async function fetchFeaturedTrainings(): Promise<ITraining[]> {
   const json = await fetchJson<{ data?: ITraining[] }>(
-    "/trainings?featured=true&limit=3",
+    "/trainings?featured=true&limit=6",
     CACHE_TAGS.TRAININGS,
   );
   return Array.isArray(json?.data) ? json.data : [];

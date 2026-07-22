@@ -56,8 +56,12 @@ export interface ITraining {
   capacity: number | null;
   applicationsOpen: boolean;
   isPublished: boolean;
-  /** Shows in the home page's featured trainings section (newest 3). */
+  /** Shows in the home page's featured trainings section (up to 3 per
+   * category — an on-site row and an online row). */
   isFeatured: boolean;
+  /** When the class was featured — orders the home-page featured rows and
+   * decides which class an override replaces. Null while not featured. */
+  featuredAt: string | null;
   feeItems?: IFeeItem[];
   counts?: { applications: number; students: number };
   createdAt: string;
@@ -116,6 +120,9 @@ export interface ITrainingInput {
   applicationsOpen?: boolean;
   isPublished?: boolean;
   isFeatured?: boolean;
+  /** Confirms replacing the first-featured class when the target featured
+   * row is full (sent after the admin accepts the override dialog). */
+  featureOverride?: boolean;
   feeItems?: IFeeItemInput[];
 }
 

@@ -16,8 +16,14 @@ vi.mock("@/components/trainings/training-card", () => ({
   ),
 }));
 
-const training = (n: number) =>
-  ({ id: `t${n}`, name: `Class ${n}` }) as ITraining;
+const training = (n: number, overrides: Partial<ITraining> = {}) =>
+  ({
+    id: `t${n}`,
+    name: `Class ${n}`,
+    category: "IN_PERSON",
+    featuredAt: `2026-07-${String(n).padStart(2, "0")}T00:00:00.000Z`,
+    ...overrides,
+  }) as ITraining;
 
 afterEach(() => cleanup());
 
@@ -26,6 +32,32 @@ describe("FeaturedTrainings", () => {
     render(<FeaturedTrainings trainings={[training(1)]} />);
     expect(screen.getByText("Learn to bake it")).toBeInTheDocument();
     expect(screen.getByText("Class 1")).toBeInTheDocument();
+  });
+
+  it("splits the classes into an on-site row and an online row, on-site first", () => {
+    render(
+      <FeaturedTrainings
+        trainings={[
+          training(1, { category: "ONLINE" }),
+          training(2),
+        ]}
+      />,
+    );
+    const labels = [
+      screen.getByText("In the kitchen"),
+      screen.getByText("Online, from home"),
+    ];
+    // The on-site row label precedes the online one in the document.
+    expect(
+      labels[0].compareDocumentPosition(labels[1]) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("hides a row with nothing featured instead of an empty band", () => {
+    render(<FeaturedTrainings trainings={[training(1, { category: "ONLINE" })]} />);
+    expect(screen.getByText("Online, from home")).toBeInTheDocument();
+    expect(screen.queryByText("In the kitchen")).not.toBeInTheDocument();
   });
 
   it("disappears when nothing is featured", () => {

@@ -10,6 +10,9 @@ export interface NormalizedError {
   code?: string;
   /** Backend correlation id (useful in bug reports). */
   errorId?: string;
+  /** Structured context for client-actionable codes (e.g. the class an
+   * override would replace on `FEATURED_LIMIT_REACHED`). */
+  details?: Record<string, unknown>;
   /** First message per field, e.g. `{ phone: "Enter a full number" }`. */
   fieldErrors?: Record<string, string>;
   hasFieldErrors: boolean;
@@ -111,6 +114,7 @@ export function extractApiError(error: unknown): NormalizedError {
         status: typeof rtkStatus === "number" ? rtkStatus : undefined,
         code: typeof data.code === "string" ? data.code : undefined,
         errorId: typeof data.errorId === "string" ? data.errorId : undefined,
+        details,
         fieldErrors,
         hasFieldErrors: Boolean(fieldErrors),
       };

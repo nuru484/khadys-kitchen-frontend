@@ -12,6 +12,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card } from "@/components/admin/ui";
 import { FileUploadField } from "@/components/admin/file-upload-field";
+import { useConfirm } from "@/components/admin/use-confirm";
 import { TextField } from "@/components/ui/TextField";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
@@ -228,6 +229,7 @@ export function TrainingForm({ training }: { training?: ITraining }) {
   const [createTraining, { isLoading: creating }] = useCreateTrainingMutation();
   const [updateTraining, { isLoading: updating }] = useUpdateTrainingMutation();
   const submitting = creating || updating;
+  const { confirm, dialog } = useConfirm();
 
   const {
     register,
@@ -249,6 +251,28 @@ export function TrainingForm({ training }: { training?: ITraining }) {
     file: null,
   });
 
+  const save = async (
+    body: ITrainingInput,
+    files: { coverImage?: File; prospectus?: File },
+  ) => {
+    if (training) {
+      await updateTraining({ id: training.id, body, files }).unwrap();
+      notify.success("Training updated");
+      router.push(`/admin/classes/${training.id}`);
+    } else {
+      const res = await createTraining({ body, files }).unwrap();
+      notify.success("Training created");
+      router.push(`/admin/classes/${res.data.id}`);
+    }
+  };
+
+  const saveFailed = (err: unknown) => {
+    notify.error(
+      isEdit ? "Couldn't update the training" : "Couldn't create the training",
+      { description: extractApiError(err).message },
+    );
+  };
+
   const onSubmit = async (values: TrainingFormValues) => {
     const body: ITrainingInput = {
       ...toInput(values),
@@ -263,24 +287,46 @@ export function TrainingForm({ training }: { training?: ITraining }) {
       prospectus: prospectus.file ?? undefined,
     };
     try {
-      if (training) {
-        await updateTraining({ id: training.id, body, files }).unwrap();
-        notify.success("Training updated");
-        router.push(`/admin/classes/${training.id}`);
-      } else {
-        const res = await createTraining({ body, files }).unwrap();
-        notify.success("Training created");
-        router.push(`/admin/classes/${res.data.id}`);
-      }
+      await save(body, files);
     } catch (err) {
-      notify.error(
-        isEdit ? "Couldn't update the training" : "Couldn't create the training",
-        { description: extractApiError(err).message },
-      );
+      const apiError = extractApiError(err);
+      // The home page fits three featured classes per row (on-site / online).
+      // A 4th doesn't hard-bounce: the admin may replace the row's first
+      // featured class, or cancel and keep the row as it is.
+      if (apiError.code === "FEATURED_LIMIT_REACHED") {
+        const label = TRAINING_CATEGORY_LABELS[values.category].toLowerCase();
+        const replaceName =
+          typeof apiError.details?.replaceName === "string"
+            ? apiError.details.replaceName
+            : "the first featured class";
+        confirm({
+          title: `That would be a 4th featured ${label} class`,
+          description: (
+            <>
+              The home page fits three featured {label} classes. You can
+              replace <strong>&ldquo;{replaceName}&rdquo;</strong> (the first
+              one featured) with this class, or cancel and leave the featured
+              row as it is.
+            </>
+          ),
+          confirmText: "Replace it",
+          onConfirm: async () => {
+            try {
+              await save({ ...body, featureOverride: true }, files);
+            } catch (overrideErr) {
+              saveFailed(overrideErr);
+            }
+          },
+        });
+        return;
+      }
+      saveFailed(err);
     }
   };
 
   return (
+    <>
+    {dialog}
     <form
       onSubmit={handleSubmit(onSubmit)}
       noValidate
@@ -556,5 +602,6 @@ export function TrainingForm({ training }: { training?: ITraining }) {
         </Button>
       </div>
     </form>
+    </>
   );
 }
