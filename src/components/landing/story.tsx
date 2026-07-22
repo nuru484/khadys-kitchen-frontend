@@ -36,7 +36,9 @@ export function Story({ about }: { about: IAboutContent | null }) {
 
   return (
     <section id="about" className="border-y border-ink/10 bg-oat">
-      <Reveal className="mx-auto grid max-w-[1280px] grid-cols-[repeat(auto-fit,minmax(min(100%,320px),1fr))] items-center gap-[clamp(36px,6vw,72px)] px-[clamp(20px,5vw,48px)] py-[clamp(56px,8vw,100px)]">
+      {/* Image and text stack as rows up through tablet (an iPad-mini-width
+          split reads cramped) and only sit side by side from lg up. */}
+      <Reveal className="mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-[clamp(36px,6vw,72px)] px-[clamp(20px,5vw,48px)] py-[clamp(56px,8vw,100px)] lg:grid-cols-2">
         <Reveal
           variant="mask-img"
           className="relative block h-[clamp(360px,42vw,520px)] w-full overflow-hidden rounded-b-[min(260px,40vw)] rounded-t-[20px] border border-ink/15"
@@ -45,7 +47,7 @@ export function Story({ about }: { about: IAboutContent | null }) {
             src={image}
             alt="Khady with a graduating class at Khady's Kitchen"
             fill
-            sizes="(max-width: 900px) 100vw, 45vw"
+            sizes="(max-width: 1023px) 100vw, 45vw"
             className="object-cover"
           />
         </Reveal>

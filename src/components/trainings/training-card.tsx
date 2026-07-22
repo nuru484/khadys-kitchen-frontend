@@ -18,7 +18,11 @@ export function TrainingCard({ training }: { training: ITraining }) {
   const meta = metaLine(training);
 
   return (
-    <Reveal className="flex">
+    // min-w-0: without it, the truncated meta line's nowrap min-content
+    // escapes up through the flex/grid chain and pushes the whole card wider
+    // than its track on very narrow screens (e.g. a 280px Galaxy Fold),
+    // clipping the card instead of ellipsizing the line.
+    <Reveal className="flex min-w-0">
       <Link
         href={trainingDetail(training.slug)}
         className="group flex w-full flex-col overflow-hidden rounded-[18px] border border-ink/10 bg-card no-underline transition-colors duration-300 hover:border-accent/45"
@@ -76,13 +80,16 @@ export function TrainingCard({ training }: { training: ITraining }) {
           <p className="line-clamp-2 min-h-[3.2em] text-[14.5px] leading-[1.6] text-ink/[0.68]">
             {training.summary}
           </p>
-          <span className="mt-auto flex items-baseline justify-between gap-4 border-t border-ink/10 pt-3.5">
+          {/* On narrow cards a long price + the link can't share a line —
+              wrap the whole link under the price (kept right-aligned by
+              ml-auto) instead of breaking "View class" mid-phrase. */}
+          <span className="mt-auto flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t border-ink/10 pt-3.5">
             {price ? (
-              <span className="text-[15px] font-semibold text-accent">{price}</span>
+              <span className="whitespace-nowrap text-[15px] font-semibold text-accent">{price}</span>
             ) : (
               <span aria-hidden="true" />
             )}
-            <span className="inline-flex items-baseline gap-1.5 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink">
+            <span className="ml-auto inline-flex items-baseline gap-1.5 whitespace-nowrap text-[13px] font-semibold uppercase tracking-[0.08em] text-ink">
               View class
               <span
                 aria-hidden="true"
