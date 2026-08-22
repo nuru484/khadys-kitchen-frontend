@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  /* Bakery palette (from the Khady's Kitchen design system) */
+  /* Bakery palette */
   --color-cream: #f6efe4; /* page background */
   --color-ink: #241a12; /* primary text */
   --color-card: #fdfaf3; /* raised surfaces */
@@ -15,8 +15,8 @@
   --font-serif: var(--font-marcellus), serif;
   --font-sans: var(--font-karla), sans-serif;
 
-  /* Hover color changes were snapping at Tailwind's 150ms default - every
-     transition-* utility without an explicit duration now eases over 300ms. */
+  /* Tailwind's 150ms default snaps hover color changes - every transition-*
+     utility without an explicit duration eases over 300ms instead. */
   --default-transition-duration: 300ms;
 }
 

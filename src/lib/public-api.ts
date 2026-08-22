@@ -1,8 +1,7 @@
 // Server-side fetchers for the public API - used by the file-convention SEO
 // surfaces (sitemap, generateMetadata) where the RTK Query client isn't
-// available. Mirrors dms-frontend's sitemap fetcher: responses are cached with
-// a revalidate window and failures are swallowed so a backend hiccup never
-// breaks a sitemap or a page render.
+// available. Responses are cached with a revalidate window and failures are
+// swallowed so a backend hiccup never breaks a sitemap or a page render.
 import { devError } from "@/lib/log";
 import { CACHE_TAGS, type CacheTag } from "@/lib/cache-tags";
 import type { IAboutContent } from "@/types/about.types";
@@ -11,8 +10,8 @@ import type { IGalleryImage } from "@/types/gallery.types";
 import type { IProduct } from "@/types/product.types";
 import type { ITraining } from "@/types/training.types";
 
-// PublicApplication moved to types/application.types.ts; re-exported so lib
-// consumers keep their import path.
+// PublicApplication lives in types/application.types.ts; re-exported here so
+// lib consumers keep their import path.
 export type { PublicApplication } from "@/types/application.types";
 
 const serverUri = process.env.NEXT_PUBLIC_SERVER_URI;

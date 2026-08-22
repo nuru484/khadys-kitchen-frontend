@@ -2,8 +2,8 @@
  * Central site config - canonical URL, brand strings, and SEO defaults.
  *
  * The base URL comes from `NEXT_PUBLIC_BASE_URL` with a production fallback,
- * mirroring the dms-frontend convention (but centralised here instead of
- * redeclared per file). Trailing slash is stripped so `${siteUrl}/path` is safe.
+ * declared once here instead of redeclared per file. Trailing slash is
+ * stripped so `${siteUrl}/path` is safe.
  */
 export const siteUrl = (
   process.env.NEXT_PUBLIC_BASE_URL || 'https://khadyskitchen.com'

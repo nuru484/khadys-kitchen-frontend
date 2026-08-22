@@ -18,8 +18,8 @@ interface RevealProps {
 
 /**
  * Reveals its children once they scroll into view by toggling the `.kk-in`
- * class the design's CSS keys off. Each instance observes itself, so the page
- * stays a Server Component and only these leaves ship JS.
+ * class the scroll-reveal CSS in globals.css keys off. Each instance observes
+ * itself, so the page stays a Server Component and only these leaves ship JS.
  */
 export function Reveal({
   children,

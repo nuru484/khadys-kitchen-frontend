@@ -42,8 +42,7 @@ export const trainingsApi = apiSlice.injectEndpoints({
     }),
 
     // Returns the standard `{ message, data }` envelope like every other
-    // slice - consumers read `data.data` (the previous unwrap was the one
-    // exception to the convention).
+    // slice - consumers read `data.data`.
     getPublicTrainingBySlug: builder.query<ITrainingResponse, string>({
       query: (slug) => ({ url: `trainings/${slug}`, method: "GET" }),
       // Slug-keyed detail also carries the list tag so list-level

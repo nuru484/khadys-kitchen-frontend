@@ -1,6 +1,6 @@
 /**
- * Central route map. Pages that exist in the design but aren't built yet
- * resolve to "#" so links never 404 - swap them in when those pages land.
+ * Central route map. Planned pages that aren't built yet resolve to "#" so
+ * links never 404; give them a real path once the page lands.
  */
 export const routes = {
   home: "/",

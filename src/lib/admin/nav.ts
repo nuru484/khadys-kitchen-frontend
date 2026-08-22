@@ -34,8 +34,8 @@ export const ADMIN_NAV_ITEMS: AdminNavEntry[] = [
     ],
   },
   // Shop surfaces (Orders, Customers, Shop items) are intentionally hidden from
-  // the sidebar for now - the pages still exist and work when navigated to
-  // directly, but the shop is not surfaced anywhere in the admin nav.
+  // the sidebar - the pages still exist and work when navigated to directly,
+  // but the shop is not surfaced anywhere in the admin nav.
   { label: "Payments", href: "/admin/payments", isActive: (p) => p.startsWith("/admin/payments") },
   { label: "Gallery", href: "/admin/gallery", isActive: (p) => p.startsWith("/admin/gallery") },
   { label: "Website", href: "/admin/website", isActive: (p) => p.startsWith("/admin/website"), adminOnly: true },

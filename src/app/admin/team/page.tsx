@@ -92,7 +92,8 @@ export default function TeamPage() {
     !isLoading && !isError && (meta?.total ?? 0) === 0 && !hasActiveFilters;
 
   // Mirrors the backend rank rules: a super-admin manages anyone (incl. peers);
-  // everyone else only strictly-lower roles. Never yourself (use Profile).
+  // everyone else only strictly-lower roles. Never the signed-in user, whose
+  // own record is edited on Profile.
   const canManage = (target: ITeamUser) =>
     !!me &&
     target.id !== me.id &&

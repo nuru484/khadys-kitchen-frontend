@@ -119,7 +119,8 @@ export default function TeamMemberDetailPage() {
 
   const isMe = me?.id === user.id;
   // Mirrors the backend rank rules: a super-admin manages anyone (incl. peers);
-  // everyone else only strictly-lower roles. Never yourself (use Profile).
+  // everyone else only strictly-lower roles. Never the signed-in user, whose
+  // own record is edited on Profile.
   const canEdit =
     !!me &&
     !isMe &&

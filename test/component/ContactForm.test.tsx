@@ -21,7 +21,7 @@ describe("ContactForm", () => {
     await userEvent.click(screen.getByRole("button", { name: "Send message" }));
     // Every empty required field surfaces its own inline error.
     expect(await screen.findAllByText(/Please add your name/i)).toHaveLength(3);
-    // The label element now also contains the inline error, so match loosely.
+    // The label element also contains the inline error, so match loosely.
     expect(screen.getByLabelText(/Your name/)).toHaveAttribute(
       "aria-invalid",
       "true",

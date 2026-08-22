@@ -1,7 +1,7 @@
 /**
  * Static content for the Khady's Kitchen site (landing + Bake School application).
- * Mirrors the copy from the designs so the pages stay data-driven rather than
- * hard-coding rows in the markup.
+ * Kept in one place so the pages stay data-driven rather than hard-coding
+ * rows in the markup.
  */
 export interface Fee {
   num: string;

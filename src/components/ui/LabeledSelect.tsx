@@ -8,8 +8,8 @@ import { cn } from "@/lib/utils";
  * category list) without a wall of chips.
  *
  * Shared across the storefront shop browser and trainings catalogue. The admin
- * `filter-bar.tsx` still ships its own copy - it should be switched over to this
- * one so there's a single source of truth.
+ * `filter-bar.tsx` carries its own copy; folding it into this one would leave a
+ * single source of truth.
  */
 export function LabeledSelect({
   label,

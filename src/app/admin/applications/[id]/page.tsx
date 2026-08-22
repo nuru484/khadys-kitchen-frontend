@@ -177,8 +177,8 @@ export default function ApplicationDetailPage() {
         <Card className="p-[clamp(20px,3vw,28px)]">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 className="font-serif text-[19px]">Applicant</h2>
-            {/* Current status doubles as the transition picker - the same
-                confirmations (and staff can't reject) as the old buttons. */}
+            {/* Current status doubles as the transition picker: every
+                transition is confirmed, and staff never see Reject. */}
             <StatusPicker
               status={app.status}
               options={applicationStatusActionsFor(isAdmin)

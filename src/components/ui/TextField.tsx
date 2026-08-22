@@ -15,7 +15,7 @@ export interface TextFieldProps
 }
 
 /**
- * Labelled text input with the design's inline validation states (error / valid)
+ * Labelled text input with inline validation states (error / valid)
  * and an optional password reveal toggle. Ref-forwarding so it drops into
  * react-hook-form via `{...register("field")}`.
  */

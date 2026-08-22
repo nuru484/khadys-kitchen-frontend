@@ -52,7 +52,7 @@ export function useTableQuery<
   );
 
   // Session memory: re-entering a table through the sidebar (a bare URL, no
-  // params) restores where you left it - page, search and filters - while an
+  // params) restores the last page, search and filters - while an
   // explicit URL always wins and a fresh browser session starts clean.
   const storageKey = `kk-table:${pathname}${prefix ? `:${prefix}` : ""}`;
 

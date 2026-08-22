@@ -39,8 +39,7 @@ export function RippleLoader({ className }: { className?: string }) {
 
 /**
  * Full-viewport centered loading state - the app's general loading screen (the
- * ripple over the cream surface with a caption), mirroring how dms shows its
- * LoadingScreen in the route guard.
+ * ripple over the cream surface with a caption), used by the route guard.
  */
 export function LoadingScreen({ className }: { className?: string }) {
   return (

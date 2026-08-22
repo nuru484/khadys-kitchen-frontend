@@ -187,7 +187,7 @@ export default function TrainingDetailPage() {
                 <img
                   src={training.coverImage}
                   alt={`${training.name} cover`}
-                  // Full-bleed banner crop on phones (same height as before);
+                  // Full-bleed banner crop on phones;
                   // the compact 4:3 thumbnail from sm up.
                   className="h-[170px] w-full object-cover sm:aspect-[4/3] sm:h-auto"
                 />

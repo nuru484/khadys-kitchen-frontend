@@ -33,7 +33,7 @@ export const paymentsApi = apiSlice.injectEndpoints({
     /**
      * The one refund/reverse mutation for both ledgers (`POST
      * admin/payments/:id/refund`). Pass the owning `orderId`/`applicationId`
-     * when you know it - detail pages provide only per-id tags, so without it
+     * when it is known - detail pages provide only per-id tags, so without it
      * an open order/application detail would keep showing the stale balance.
      */
     refundPayment: builder.mutation<

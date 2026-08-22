@@ -2,7 +2,7 @@
  * Typed, fail-fast access to the public env vars. Importing this module
  * validates that the required `NEXT_PUBLIC_*` vars are present, so a
  * misconfigured deployment fails at load rather than silently issuing requests
- * to `undefined/api/v1`. Mirrors the backend's `ENV` pattern.
+ * to `undefined/api/v1`.
  */
 function required(name: string, value: string | undefined): string {
   if (!value) {

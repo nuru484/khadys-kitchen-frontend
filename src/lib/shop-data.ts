@@ -1,6 +1,6 @@
 /**
- * Shop browse/display helpers. The catalogue itself now lives in the backend
- * (`GET /products` via products-api); what remains here is pure UI vocabulary -
+ * Shop browse/display helpers. The catalogue itself lives in the backend
+ * (`GET /products` via products-api); what lives here is pure UI vocabulary -
  * category filters, sorting, price bands and lead-time labels.
  */
 import type { IProduct, ProductCategory } from "@/types/product.types";

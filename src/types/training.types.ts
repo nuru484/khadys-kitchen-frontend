@@ -69,8 +69,8 @@ export interface ITraining {
   updatedAt: string;
 }
 
-// Moved to types/api.ts (its natural home, next to the tag registry);
-// re-exported so existing imports keep working.
+// Defined in types/api.ts, next to the tag registry; re-exported here so
+// either import path resolves.
 export type { IPaginationMeta } from "./api";
 
 /** `GET /trainings` - published classes, newest first. */

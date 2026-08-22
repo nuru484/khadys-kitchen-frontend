@@ -1,6 +1,6 @@
 // Price details render every fee independently: variants sharing a choiceGroup
 // are alternatives joined by "or" (never summed into a total), optional items
-// are badged, and the old "Total (required)" row is gone for good.
+// are badged, and no combined "Total (required)" row is rendered.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { FeesTable } from "@/components/trainings/fees-table";

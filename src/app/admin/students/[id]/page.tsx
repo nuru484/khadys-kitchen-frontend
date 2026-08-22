@@ -145,8 +145,8 @@ export default function StudentDetailPage() {
         <Card className="p-[clamp(20px,3vw,28px)]">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-serif text-[19px]">Details</h2>
-            {/* Current status doubles as the lifecycle picker - the same
-                transitions and confirmations as the old header buttons. */}
+            {/* Current status doubles as the lifecycle picker: every
+                transition runs through the same confirmation. */}
             <StatusPicker
               status={student.status}
               options={[

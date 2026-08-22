@@ -10,11 +10,11 @@ import { cn } from "@/lib/utils";
 const MAX_BYTES = 10 * 1024 * 1024; // matches the backend's 10MB cap
 
 /**
- * A reusable "select a file from your system" field - image or document. The
- * chosen file is only STAGED locally (object-URL preview); nothing reaches
- * Cloudinary until the parent form submits it as multipart, so cancelling never
- * orphans an upload. Supports choose / replace / remove, and shows the existing
- * asset when editing. DRY across the product, training, and profile forms.
+ * A reusable file-picker field - image or document. The chosen file is only
+ * STAGED locally (object-URL preview); nothing reaches Cloudinary until the
+ * parent form submits it as multipart, so cancelling never orphans an upload.
+ * Supports choose / replace / remove, and shows the existing asset when
+ * editing. DRY across the product, training, and profile forms.
  */
 export function FileUploadField({
   label,

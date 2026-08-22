@@ -12,7 +12,7 @@ import type { ZodType } from "zod";
 /**
  * Wires a real react-hook-form + zodResolver around a presentational field or
  * form, so tests can drive validation without re-implementing the form each
- * time. Mirrors dms-frontend's `FormHarness`.
+ * time.
  *
  * The casts bridge zod v4 ↔ resolver/RHF generic variance; the runtime wiring
  * is exactly what the app uses.

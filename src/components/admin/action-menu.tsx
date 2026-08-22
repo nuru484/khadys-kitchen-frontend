@@ -13,7 +13,7 @@ export interface ActionItem {
 }
 
 /**
- * Compact dropdown for row/detail actions - the dms-style "⋯" menu. Keeps
+ * Compact dropdown for row/detail actions, behind a "⋯" trigger. Keeps
  * tables tidy when a row has many actions and collapses gracefully on small
  * screens. Closes on outside click, Escape, and after an action runs; clicks
  * never bubble to the row (rows navigate on click).
