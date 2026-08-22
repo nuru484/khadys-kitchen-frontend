@@ -16,6 +16,7 @@ import { useConfirm } from "@/components/admin/use-confirm";
 import { TextField } from "@/components/ui/TextField";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
+import { X } from "@/components/ui/icons";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
 import {
@@ -213,7 +214,7 @@ function BulletListField({
                 onClick={() => list.remove(i)}
                 className="mt-[34px] text-[15px] font-semibold text-danger"
               >
-                ✕
+                <X className="h-[15px] w-[15px]" aria-hidden="true" />
               </button>
             </div>
           ))}

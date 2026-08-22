@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { RippleLoader } from "@/components/ui/Loader";
+import { Check } from "@/components/ui/icons";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ORDER_CODE_KEY } from "@/components/shop/checkout-form";
 import { cn } from "@/lib/utils";
@@ -191,7 +192,7 @@ export function OrderTracker({ code }: { code: string }) {
       {justPlaced && !cancelled ? (
         <div className="mb-6 flex flex-wrap items-center gap-3 rounded-[14px] border border-success/25 bg-success/10 px-5 py-4 text-[15px] text-success">
           <span className="grid h-8 w-8 flex-none place-items-center rounded-full bg-success text-[15px] text-white">
-            ✓
+            <Check className="h-[15px] w-[15px]" aria-hidden="true" />
           </span>
           Order received - we&rsquo;ve texted your code to {order.phone}. Keep it
           safe; you&rsquo;ll quote it at pickup.
@@ -252,7 +253,7 @@ export function OrderTracker({ code }: { code: string }) {
                         : "border-ink/25 bg-card text-ink/40",
                     )}
                   >
-                    {done ? "✓" : i + 1}
+                    {done ? <Check className="h-[12px] w-[12px]" aria-hidden="true" /> : i + 1}
                   </span>
                   <div className="min-w-0 md:mt-2.5">
                     <div

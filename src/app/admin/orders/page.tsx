@@ -24,6 +24,7 @@ import { WalkInOrderModal } from "@/components/admin/walk-in-order-modal";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { X } from "@/components/ui/icons";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/lib/format-money";
@@ -169,7 +170,8 @@ export default function OrdersPage() {
             onClick={() => router.replace("/admin/orders")}
             className="inline-flex cursor-pointer items-center gap-1.5 self-center rounded-full bg-accent/10 px-3.5 py-2 text-[12.5px] font-semibold text-accent transition-colors hover:bg-accent/15"
           >
-            Filtered by item ✕
+            Filtered by item
+            <X className="h-[12px] w-[12px]" aria-hidden="true" />
           </button>
         ) : null}
         <LabeledSelect

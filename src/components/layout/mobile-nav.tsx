@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { NavLink } from "@/components/layout/site-header";
 import { isNavActive, useActivePathname } from "@/components/layout/header-nav";
 import { useModalFocus } from "@/hooks/use-modal-focus";
+import { X } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 interface MobileNavProps {
@@ -67,7 +68,7 @@ export function MobileNav({ navLinks, cta, className }: MobileNavProps) {
               onClick={() => setOpen(false)}
               className="grid h-[46px] w-[46px] cursor-pointer place-items-center rounded-full border-[1.5px] border-cream/35 bg-transparent text-[18px] text-cream transition-colors hover:border-cream"
             >
-              ✕
+              <X className="h-[18px] w-[18px]" aria-hidden="true" />
             </button>
           </div>
 

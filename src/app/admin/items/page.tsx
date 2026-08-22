@@ -16,6 +16,7 @@ import { useConfirm } from "@/components/admin/use-confirm";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Bread } from "@/components/ui/icons";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
 import { notify } from "@/lib/notify";
@@ -237,8 +238,8 @@ export default function ItemsPage() {
                           className="h-9 w-9 flex-none rounded-[8px] object-cover"
                         />
                       ) : (
-                        <span className="grid h-9 w-9 flex-none place-items-center rounded-[8px] bg-ink/[0.06] text-[14px]">
-                          🍞
+                        <span className="grid h-9 w-9 flex-none place-items-center rounded-[8px] bg-ink/[0.06] text-ink/45">
+                          <Bread className="h-[18px] w-[18px]" aria-hidden="true" />
                         </span>
                       )}
                       <div className="min-w-0 flex-1">
@@ -324,8 +325,8 @@ export default function ItemsPage() {
                               className="h-11 w-11 flex-none rounded-[10px] object-cover"
                             />
                           ) : (
-                            <span className="grid h-11 w-11 flex-none place-items-center rounded-[10px] bg-ink/[0.06] text-[15px]">
-                              🍞
+                            <span className="grid h-11 w-11 flex-none place-items-center rounded-[10px] bg-ink/[0.06] text-ink/45">
+                              <Bread className="h-[22px] w-[22px]" aria-hidden="true" />
                             </span>
                           )}
                           <div className="min-w-0">

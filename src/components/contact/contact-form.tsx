@@ -7,6 +7,7 @@ import { Reveal } from "@/components/reveal";
 import { Button } from "@/components/ui/Button";
 import { ChoiceButton, ChoiceGroup } from "@/components/ui/ChoiceButton";
 import { FieldError } from "@/components/ui/FieldError";
+import { Check } from "@/components/ui/icons";
 import {
   TurnstileWidget,
   TURNSTILE_ENABLED,
@@ -110,7 +111,7 @@ export function ContactForm() {
                 style={{ animation: "kk-fadein .7s both" }}
               >
                 <div className="mx-auto mb-5 grid h-[60px] w-[60px] place-items-center rounded-full bg-accent text-[26px] text-card">
-                  ✓
+                  <Check className="h-[26px] w-[26px]" aria-hidden="true" />
                 </div>
                 <h3 className="mb-2.5 font-serif text-[26px] font-normal">
                   Message sent

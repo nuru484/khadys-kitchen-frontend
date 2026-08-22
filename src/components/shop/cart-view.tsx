@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { routes } from "@/lib/routes";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { X } from "@/components/ui/icons";
 import { useCart } from "@/lib/cart-store";
 import { formatMoney } from "@/lib/format-money";
 import { FALLBACK_PRODUCT_IMG, leadLabel } from "@/lib/shop-data";
@@ -118,7 +119,7 @@ export function CartView() {
                   onClick={() => remove(line.id)}
                   className="grid h-[38px] w-[38px] cursor-pointer place-items-center rounded-full border-none bg-transparent text-[18px] text-ink/45 transition-colors hover:bg-accent/10 hover:text-accent"
                 >
-                  ✕
+                  <X className="h-[18px] w-[18px]" aria-hidden="true" />
                 </button>
               </div>
             ))}

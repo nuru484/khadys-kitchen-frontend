@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
+import { Sparkle } from "@/components/ui/icons";
 
 /**
- * The same-day announcement, split into phrases so the ✦ separators land
+ * The same-day announcement, split into phrases so the star separators land
  * between them and the band keeps its ticker look (uppercase serif, accent
  * highlights) instead of reading as a running sentence.
  */
@@ -30,7 +31,7 @@ export function Marquee() {
       {SEGMENTS.map((item) => (
         <span key={item.key}>
           <span className="px-7">{item.content}</span>
-          <span className="text-accent">✦</span>
+          <Sparkle className="inline h-[13px] w-[13px] align-[-0.05em] text-accent" />
         </span>
       ))}
     </>

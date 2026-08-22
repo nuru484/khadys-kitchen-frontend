@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Check } from "@/components/ui/icons";
 import { routes } from "@/lib/routes";
 import { useCart } from "@/lib/cart-store";
 import type { IProduct } from "@/types/product.types";
@@ -76,7 +77,10 @@ export function AddToCart({ product }: { product: IProduct }) {
 
       {justAdded ? (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-[12px] border border-success/25 bg-success/10 px-4 py-3 text-[14.5px] text-success">
-          <span>Added to your order ✓</span>
+          <span>
+            Added to your order{" "}
+            <Check className="inline h-4 w-4 align-[-0.15em]" aria-hidden="true" />
+          </span>
           <Link
             href={routes.shopCart}
             className="font-semibold text-success underline"

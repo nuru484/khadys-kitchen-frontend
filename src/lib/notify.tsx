@@ -1,4 +1,6 @@
+import type { ReactNode } from 'react';
 import toast, { type Toast } from 'react-hot-toast';
+import { Check, Sparkle, X } from '@/components/ui/icons';
 import { cn } from '@/lib/utils';
 
 export type ToastType = 'success' | 'error' | 'info';
@@ -14,12 +16,12 @@ const DEFAULT_DURATION = 5000;
 
 const TYPE_STYLES: Record<
   ToastType,
-  { glyph: string; iconBg: string; siteBorder: string }
+  { glyph: ReactNode; iconBg: string; siteBorder: string }
 > = {
-  success: { glyph: '✓', iconBg: 'var(--color-success)', siteBorder: 'rgba(36,26,18,0.15)' },
+  success: { glyph: <Check className="h-[15px] w-[15px]" />, iconBg: 'var(--color-success)', siteBorder: 'rgba(36,26,18,0.15)' },
   error: { glyph: '!', iconBg: 'var(--color-danger)', siteBorder: 'color-mix(in srgb, var(--color-danger) 35%, transparent)' },
   info: {
-    glyph: '✦',
+    glyph: <Sparkle className="h-[15px] w-[15px]" />,
     iconBg: 'var(--color-accent)',
     siteBorder: 'rgba(36,26,18,0.15)',
   },
@@ -91,7 +93,7 @@ export function ToastCard({
           admin ? 'text-cream/60' : 'text-ink/60',
         )}
       >
-        ✕
+        <X className="h-[15px] w-[15px]" aria-hidden="true" />
       </button>
       <span
         className="absolute bottom-0 left-0 h-[3px] w-full"

@@ -15,6 +15,7 @@ import {
 } from "@/lib/admin/nav";
 import { useTrackNavHistory } from "@/components/admin/back-link";
 import { useModalFocus } from "@/hooks/use-modal-focus";
+import { X } from "@/components/ui/icons";
 import { useLogoutMutation } from "@/redux/auth/auth-api";
 import { useAuthRole } from "@/hooks/use-auth-role";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -346,7 +347,7 @@ function MobileMenu({
           onClick={onClose}
           className="grid h-11 w-11 cursor-pointer place-items-center rounded-full border-[1.5px] border-cream/35 bg-transparent text-[17px] text-cream transition-colors hover:border-cream"
         >
-          ✕
+          <X className="h-[17px] w-[17px]" aria-hidden="true" />
         </button>
       </div>
       <nav className="grid flex-1 content-start gap-0.5 overflow-y-auto px-[clamp(22px,7vw,48px)] py-6">

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ProductCard } from "@/components/shop/product-card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { X } from "@/components/ui/icons";
 import { ShopCardSkeleton } from "@/components/ui/ShopCardSkeleton";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { LabeledSelect } from "@/components/ui/LabeledSelect";
@@ -306,7 +307,7 @@ export function ShopBrowser({
               onClick={clearFilters}
               className="col-span-2 cursor-pointer justify-self-start border-none bg-transparent p-0 font-sans text-[13.5px] font-semibold text-accent underline lg:hidden"
             >
-              Clear all ✕
+              Clear all <X className="inline h-[13px] w-[13px] align-[-0.1em]" aria-hidden="true" />
             </button>
           ) : null}
         </div>
@@ -322,7 +323,7 @@ export function ShopBrowser({
               onClick={clearFilters}
               className="cursor-pointer border-none bg-transparent p-0 font-sans text-[13.5px] font-semibold text-accent underline"
             >
-              Clear all ✕
+              Clear all <X className="inline h-[13px] w-[13px] align-[-0.1em]" aria-hidden="true" />
             </button>
           ) : null}
         </div>

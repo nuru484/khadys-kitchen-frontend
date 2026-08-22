@@ -9,6 +9,7 @@ import { fromPriceLabel } from "@/components/trainings/training-price";
 import { Reveal } from "@/components/reveal";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { Check } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/format-date";
 import { routes } from "@/lib/routes";
@@ -227,7 +228,7 @@ function ContentSections({ training }: { training: ITraining }) {
                     aria-hidden="true"
                     className="mt-[2px] grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent/10 text-[13px] font-bold text-accent"
                   >
-                    ✓
+                    <Check className="h-[13px] w-[13px]" />
                   </span>
                   <span className="text-[15.5px] leading-[1.6] text-ink/85">
                     {outcome}

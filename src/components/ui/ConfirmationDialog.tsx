@@ -2,6 +2,7 @@
 
 import { useId, useState, type ReactNode } from "react";
 import { Modal } from "@/components/ui/Modal";
+import { Check, X } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 export type ConfirmTone = "destructive" | "success" | "brand";
@@ -30,19 +31,19 @@ export interface ConfirmationDialogProps {
   children?: ReactNode;
 }
 
-const TONE_STYLES: Record<ConfirmTone, { glyph: string; iconClass: string; confirm: string }> = {
+const TONE_STYLES: Record<ConfirmTone, { glyph: ReactNode; iconClass: string; confirm: string }> = {
   destructive: {
-    glyph: "✕",
+    glyph: <X className="h-5 w-5" />,
     iconClass: "bg-danger/10 text-danger",
     confirm: "bg-danger text-card hover:opacity-90",
   },
   success: {
-    glyph: "✓",
+    glyph: <Check className="h-5 w-5" />,
     iconClass: "bg-success/[0.12] text-success",
     confirm: "bg-accent text-card hover:bg-ink",
   },
   brand: {
-    glyph: "✓",
+    glyph: <Check className="h-5 w-5" />,
     iconClass: "bg-accent/10 text-accent",
     confirm: "bg-accent text-card hover:bg-ink",
   },

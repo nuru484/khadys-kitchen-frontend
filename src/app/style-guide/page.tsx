@@ -13,6 +13,7 @@ import { OfflineBanner } from "@/components/ui/OfflineBanner";
 import { TextField } from "@/components/ui/TextField";
 import { Button } from "@/components/ui/Button";
 import { SystemMessage } from "@/components/ui/SystemMessage";
+import { Check, Sparkle, X } from "@/components/ui/icons";
 import { notify } from "@/lib/notify";
 import { routes } from "@/lib/routes";
 
@@ -184,7 +185,7 @@ export default function StyleGuidePage() {
 
           <Modal open={orderModal} onClose={() => setOrderModal(false)} centered>
             <span className="mx-auto mb-4 grid h-[58px] w-[58px] place-items-center rounded-full bg-accent text-[24px] text-card" aria-hidden="true">
-              ✓
+              <Check className="h-[24px] w-[24px]" />
             </span>
             <h3 className="mb-2 font-serif text-[22px] font-normal">Your order is in the queue</h3>
             <p className="mb-[22px] text-[14.5px] leading-[1.6] text-ink/65">
@@ -254,7 +255,8 @@ export default function StyleGuidePage() {
                 Place custom order →
               </Button>
               <Button className="w-full" variant="success">
-                Order placed ✓
+                Order placed
+                <Check className="h-[14px] w-[14px]" aria-hidden="true" />
               </Button>
               <Caption>Default · loading · disabled · success</Caption>
             </div>
@@ -276,7 +278,7 @@ export default function StyleGuidePage() {
             <div>
               <SystemMessage
                 tone="dark"
-                glyph="✦"
+                glyph={<Sparkle className="h-[24px] w-[24px]" />}
                 title="Resting the ovens."
                 description="We're doing a little kitchen maintenance. Orders reopen shortly - WhatsApp us if it's urgent."
                 actions={[{ label: "Message us on WhatsApp", variant: "primary" }]}
@@ -285,7 +287,7 @@ export default function StyleGuidePage() {
             </div>
             <div>
               <SystemMessage
-                glyph="✕"
+                glyph={<X className="h-[24px] w-[24px]" />}
                 title="Admins only past this door."
                 description="Your account doesn't have access to the console. Sign in with an admin account or head back to the shop."
                 actions={[

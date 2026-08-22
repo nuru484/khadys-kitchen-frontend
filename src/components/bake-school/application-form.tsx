@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { ChoiceButton, ChoiceGroup } from "@/components/ui/ChoiceButton";
 import { FieldError } from "@/components/ui/FieldError";
+import { Check } from "@/components/ui/icons";
 import {
   TurnstileWidget,
   TURNSTILE_ENABLED,
@@ -285,7 +286,7 @@ export function ApplicationForm({ training }: { training: ITraining }) {
       {submitted ? (
         <div className="rounded-[22px] border border-ink/10 bg-card p-[clamp(36px,5vw,56px)] text-center">
           <div className="mx-auto mb-[22px] grid h-16 w-16 place-items-center rounded-full bg-accent text-[28px] text-card">
-            ✓
+            <Check className="h-[28px] w-[28px]" aria-hidden="true" />
           </div>
           <h3 className="mb-3 font-serif text-[28px] font-normal">
             Application received

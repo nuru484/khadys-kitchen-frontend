@@ -2,6 +2,7 @@
 
 import { Fragment, useState, type ReactNode } from "react";
 import { DateInput } from "@/components/ui/DateInput";
+import { X } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 // One source of truth for the labelled dropdown - re-exported here so the
@@ -118,7 +119,7 @@ export function FilterBar({
           aria-label="Clear search"
           className="absolute right-3 top-1/2 grid h-5 w-5 -translate-y-1/2 place-items-center rounded-full bg-ink/10 text-[11px] font-bold text-ink/55 transition-colors hover:bg-ink/20 hover:text-ink"
         >
-          ✕
+          <X className="h-[11px] w-[11px]" aria-hidden="true" />
         </button>
       ) : null}
     </div>

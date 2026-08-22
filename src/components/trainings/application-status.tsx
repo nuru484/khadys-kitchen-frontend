@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PayBalanceButton } from "@/components/trainings/pay-balance-button";
+import { Check } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/lib/format-money";
 import { routes } from "@/lib/routes";
@@ -139,7 +140,8 @@ export function ApplicationStatus({
             />
           ) : application.balance === 0 ? (
             <p className="text-[15px] font-semibold text-success">
-              ✓ Fully paid - nothing left to settle.
+              <Check className="mr-1 inline h-4 w-4 align-[-0.15em]" aria-hidden="true" />
+              Fully paid - nothing left to settle.
             </p>
           ) : (
             <p className="text-[14.5px] leading-[1.6] text-ink/60">

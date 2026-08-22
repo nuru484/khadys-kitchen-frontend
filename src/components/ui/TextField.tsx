@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useId, useRef, useState } from "react";
+import { Check } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 export interface TextFieldProps
@@ -145,7 +146,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
               className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-success"
               aria-hidden="true"
             >
-              ✓
+              <Check className="h-4 w-4" />
             </span>
           ) : null}
         </div>
